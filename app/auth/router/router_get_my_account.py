@@ -1,9 +1,7 @@
-from typing import Any
 
 from fastapi import Depends
-from pydantic import Field
 
-from app.utils import AppModel
+from app.auth.schema import RegisterUserResponse
 
 from ..adapters.jwt_service import JWTData
 from ..service import Service, get_service
@@ -11,12 +9,7 @@ from . import router
 from .dependencies import parse_jwt_user_data
 
 
-class GetMyAccountResponse(AppModel):
-    id: Any = Field(alias="_id")
-    email: str
-
-
-@router.get("/users/me", response_model=GetMyAccountResponse)
+@router.get("/users/me", response_model=RegisterUserResponse)
 def get_my_account(
     jwt_data: JWTData = Depends(parse_jwt_user_data),
     svc: Service = Depends(get_service),

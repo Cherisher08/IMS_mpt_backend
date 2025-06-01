@@ -1,16 +1,9 @@
 import importlib
 import pkgutil
 from datetime import datetime
-from typing import Any, Callable, Optional
 from zoneinfo import ZoneInfo
-
-import orjson
 from bson.objectid import ObjectId
-from pydantic import BaseModel, root_validator
-
-
-def orjson_dumps(v: Any, *, default: Optional[Callable[[Any], Any]]) -> str:
-    return orjson.dumps(v, default=default).decode()
+from pydantic import BaseModel
 
 
 def convert_datetime_to_gmt(dt: datetime) -> str:
@@ -22,20 +15,9 @@ def convert_datetime_to_gmt(dt: datetime) -> str:
 
 class AppModel(BaseModel):
     class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
         json_encoders = {datetime: convert_datetime_to_gmt, ObjectId: str}
-        allow_population_by_field_name = True
-
-    @root_validator()
-    def set_null_microseconds(cls, data: dict[str, Any]) -> dict[str, Any]:
-        datetime_fields = {
-            k: v.replace(microsecond=0)
-            for k, v in data.items()
-            if isinstance(k, datetime)
-        }
-
-        return {**data, **datetime_fields}
+        arbitrary_types_allowed = True
+        validate_by_name = True
 
 
 def import_routers(package_name):

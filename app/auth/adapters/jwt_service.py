@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from jose import JWTError, jwt
@@ -24,11 +24,11 @@ class JwtService:
         self,
         user: dict,
     ) -> str:
-        expires_delta = timedelta(minutes=self.expiration)
+        expires_delta = timedelta(days=self.expiration)
 
         jwt_data = {
             "sub": str(user["_id"]),
-            "exp": datetime.utcnow() + expires_delta,
+            "exp": datetime.now(tz=timezone.utc) + expires_delta,
         }
 
         return jwt.encode(jwt_data, self.secret, algorithm=self.algorithm)

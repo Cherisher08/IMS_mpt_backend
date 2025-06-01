@@ -22,9 +22,11 @@ def authorize_user(
     user = svc.repository.get_user_by_email(input.username)
 
     if not user:
+        print("User not found")
         raise InvalidCredentialsException
 
     if not check_password(input.password, user["password"]):
+        print("Password is incorrect")
         raise InvalidCredentialsException
 
     return AuthorizeUserResponse(
