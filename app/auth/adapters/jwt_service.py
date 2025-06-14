@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from fastapi import HTTPException, status
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
 
@@ -24,7 +25,7 @@ class JwtService:
         self,
         user: dict,
     ) -> str:
-        expires_delta = timedelta(days=self.expiration)
+        expires_delta = timedelta(seconds=self.expiration)
 
         jwt_data = {
             "sub": str(user["_id"]),
@@ -40,7 +41,10 @@ class JwtService:
         try:
             payload = jwt.decode(token, self.secret, algorithms=[self.algorithm])
         except JWTError:
-            raise InvalidToken()
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access Token is Expired or Invalid. Please Login again"
+            )
 
         return JWTData(**payload)
 

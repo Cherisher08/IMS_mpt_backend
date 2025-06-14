@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status
+from pydantic_core import ValidationError
 
 from app.auth.schema import RegisterUserRequest, RegisterUserResponse
 
@@ -20,4 +21,11 @@ def register_user(
         )
 
     created_user = svc.repository.create_user(input)
+    try:
+        created_user = RegisterUserResponse(**created_user)
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Pydantic Validation Error. Please Contact Admin or Developer.",
+        )
     return created_user

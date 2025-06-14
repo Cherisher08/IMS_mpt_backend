@@ -1,5 +1,6 @@
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from pydantic_core import ValidationError
 
 from app.auth.schema import RegisterUserResponse
 
@@ -13,6 +14,13 @@ from .dependencies import parse_jwt_user_data
 def get_my_account(
     jwt_data: JWTData = Depends(parse_jwt_user_data),
     svc: Service = Depends(get_service),
-) -> dict[str, str]:
+) -> RegisterUserResponse:
     user = svc.repository.get_user_by_id(jwt_data.user_id)
+    try:
+        user = RegisterUserResponse(**user)
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Pydantic Validation Error. Please Contact Admin or Developer.",
+        )
     return user

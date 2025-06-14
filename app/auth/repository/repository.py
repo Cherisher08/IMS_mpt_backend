@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta, timezone
 
 from bson.objectid import ObjectId
-from fastapi import HTTPException, status
-from pydantic_core import ValidationError
 from pymongo.database import Database
 
 from app.auth.schema import (
-    OtpResponse,
     PyObjectId,
     RegisterUserRequest,
     RegisterUserResponse,
