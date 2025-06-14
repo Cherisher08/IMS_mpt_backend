@@ -18,7 +18,7 @@ if env.mongo_db_url:
     mongo_url = env.mongo_db_url
 
 # MongoDB connection
-client = MongoClient(mongo_url)
+client = MongoClient(mongo_url,tz_aware=True)
 
 # MongoDB database
 database = client[env.database]

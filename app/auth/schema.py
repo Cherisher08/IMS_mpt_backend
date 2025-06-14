@@ -1,22 +1,30 @@
 from datetime import datetime
 from enum import Enum
+from typing import Any, Callable
 
 from bson import ObjectId
-from pydantic import GetCoreSchemaHandler, Field
+from pydantic import Field
 from pydantic_core import core_schema
 from app.utils import AppModel
 
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_pydantic_core_schema__(cls, source_type, handler: GetCoreSchemaHandler):
-        return core_schema.json_schema(
-            core_schema.str_schema(),
-            serialization=core_schema.plain_serializer_function_ser_schema(str),
-        )
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: Callable[[Any], core_schema.CoreSchema],
+    ) -> core_schema.CoreSchema:
+        def validate_from_str(input_value: str) -> ObjectId:
+            return ObjectId(input_value)
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+        return core_schema.union_schema(
+            [
+                # check if it's an instance first before doing any further work
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.no_info_plain_validator_function(validate_from_str),
+            ],
+            serialization=core_schema.to_string_ser_schema(),
+        )
 
     @classmethod
     def validate(cls, v):
@@ -28,6 +36,7 @@ class PyObjectId(ObjectId):
 
     def __str__(self):
         return str(super())
+
 
 
 class Role(str, Enum):
@@ -60,5 +69,5 @@ class OtpResponse(AppModel):
     expiration_time: datetime
     created_at: datetime
     
-class ResetPasswordResponse(AppModel):
+class GeneralResponse(AppModel):
     detail: str

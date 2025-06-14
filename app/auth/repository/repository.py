@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 from bson.objectid import ObjectId
+from fastapi import HTTPException, status
+from pydantic_core import ValidationError
 from pymongo.database import Database
 
 from app.auth.schema import (
@@ -9,6 +11,7 @@ from app.auth.schema import (
     RegisterUserRequest,
     RegisterUserResponse,
 )
+from app.constants import ID
 
 from ..utils.security import hash_password
 
@@ -30,27 +33,18 @@ class AuthRepository:
         return self.get_user_by_id(result.inserted_id)
 
     def update_user(self, user: RegisterUserResponse):
-        payload = {
-            "id": user.id,
-            "email": user.email,
-            "password": hash_password(user.password),
-            "name": user.name,
-            "role": user.role.value,
-            "created_at": datetime.now(tz=timezone.utc),
-        }
+        self.database["users"].update_one({"_id": ObjectId(user.id)}, {"$set": {"password": hash_password(user.password)}})
+        return self.get_user_by_id(user.id)
 
-        result = self.database["users"].update_one({"id": user.id}, payload)
-        return self.get_user_by_id(result.inserted_id)
-
-    def get_user_by_id(self, user_id: str) -> RegisterUserResponse:
+    def get_user_by_id(self, user_id: str):
         user = self.database["users"].find_one(
             {
                 "_id": ObjectId(user_id),
             }
         )
-        return RegisterUserResponse(**user)
+        return user
 
-    def get_user_by_email(self, email: str) -> RegisterUserResponse:
+    def get_user_by_email(self, email: str):
         user = self.database["users"].find_one(
             {
                 "email": email,
@@ -58,7 +52,7 @@ class AuthRepository:
         )
         return user
 
-    def create_otp_for_user(self, otp: str, id: PyObjectId) -> OtpResponse:
+    def create_otp_for_user(self, otp: str, id: PyObjectId):
         payload = {
             "otp": otp,
             "user_id": id,
@@ -69,9 +63,9 @@ class AuthRepository:
         return result.inserted_id
 
     def delete_otp_for_user(self, id: PyObjectId) -> int:
-        result = self.database["otp"].delete_one({"id": id})
+        result = self.database["otp"].delete_one({ID: id})
         return result.deleted_count
 
-    def get_otp_for_user(self, id: PyObjectId) -> OtpResponse:
+    def get_otp_for_user(self, id: PyObjectId):
         otp = self.database["otp"].find_one({"user_id": id})
         return otp
