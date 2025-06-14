@@ -20,7 +20,7 @@ pydantic-settings = "^2.9.1"
 
 [tool.poetry.group.dev.dependencies]
 types-python-jose = "^3.3.4.7"
-ruff = "^0.0.271"
+ruff = "^0.11"
 
 [build-system]
 requires = ["poetry-core"]

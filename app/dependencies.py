@@ -31,6 +31,22 @@ class ENV:
             print("Missing mongodb url env")
             self.missing_required_envs.append("SECRET_KEY")
 
+        self.smtp_server = os.getenv("SMTP_SERVER")
+        if not self.smtp_server:
+            print("Missing mongodb url env")
+            
+        self.smtp_email = os.getenv("SMTP_EMAIL")
+        if not self.smtp_email:
+            print("Missing mongodb url env")
+            
+        self.smtp_port = os.getenv("SMTP_PORT")
+        if not self.smtp_port:
+            print("Missing mongodb url env")\
+
+        self.smtp_password = os.getenv("SMTP_PASSWORD")
+        if not self.smtp_password:
+            print("Missing mongodb url env")
+
         if self.missing_required_envs:
             error_message = (
                 f"Missing required envs: {','.join(self.missing_required_envs)}"

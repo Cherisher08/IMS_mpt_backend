@@ -20,5 +20,4 @@ def register_user(
         )
 
     created_user = svc.repository.create_user(input)
-
     return created_user
