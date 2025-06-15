@@ -1,38 +1,24 @@
 from typing import Any
 
-from pydantic import BaseSettings
 from pymongo import MongoClient
 
-
-class Config(BaseSettings):
-    CORS_ORIGINS: list[str] = ["*"]
-    CORS_HEADERS: list[str] = ["*"]
-    CORS_METHODS: list[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-
-    MONGOHOST: str = "localhost"
-    MONGOPORT: str = "27017"
-    MONGOUSER: str = "root"
-    MONGOPASSWORD: str = "password"
-    MONGODATABASE: str = "fastapi"
-    MONGO_URL: str = ""
+from .dependencies import ENV
 
 
 # environmental variables
-env = Config()
+env = ENV()
 
 # FastAPI configurations
 fastapi_config: dict[str, Any] = {
-    "title": "API",
+    "title": "IMS API",
+    "separate_input_output_schemas": False,
 }
 
-mongo_url = (
-    f"mongodb://{env.MONGOUSER}:{env.MONGOPASSWORD}@{env.MONGOHOST}:{env.MONGOPORT}/"
-)
-if env.MONGO_URL:
-    mongo_url = env.MONGO_URL
+if env.mongo_db_url:
+    mongo_url = env.mongo_db_url
 
 # MongoDB connection
-client = MongoClient(mongo_url)
+client = MongoClient(mongo_url,tz_aware=True)
 
 # MongoDB database
-database = client[env.MONGODATABASE]
+database = client[env.database]
