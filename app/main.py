@@ -3,6 +3,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
 from app.product.router import router as product_router
+from app.contact.router import router as contact_router
 from app.config import client, env, fastapi_config
 
 app = FastAPI(**fastapi_config)
@@ -28,6 +29,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(product_router, prefix="/products", tags=["Product"])
+app.include_router(contact_router, prefix="/contacts", tags=["Contact"])
 
 
 @app.get("/")

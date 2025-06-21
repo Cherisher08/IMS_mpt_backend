@@ -1,0 +1,21 @@
+from datetime import datetime, timezone
+from typing import Optional
+from pydantic import Field, EmailStr
+
+from app.auth.schema import PyObjectId
+from app.utils import AppModel
+
+
+class Contact(AppModel):
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    name: str
+    personal: str
+    office: Optional[str]
+    gstin: str
+    email: Optional[EmailStr]
+    address: str
+    pincode: str
+    address_proof: str
+    created_at: datetime = Field(
+        default_factory=(lambda _: datetime.now(tz=timezone.utc))
+    )
