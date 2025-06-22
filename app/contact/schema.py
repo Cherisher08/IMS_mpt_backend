@@ -16,6 +16,7 @@ class Contact(AppModel):
     address: str
     pincode: str
     address_proof: str
+    company_name: str
     created_at: datetime = Field(
         default_factory=(lambda _: datetime.now(tz=timezone.utc))
     )

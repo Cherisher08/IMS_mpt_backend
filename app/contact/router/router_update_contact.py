@@ -22,6 +22,7 @@ async def update_contact(
     email: str = Form(...),
     address: str = Form(...),
     pincode: str = Form(...),
+    company_name: str = Form(...),
     created_at: str = Form(...),
     address_proof: UploadFile = File(...),
     svc: ContactService = Depends(get_contact_service),
@@ -38,6 +39,7 @@ async def update_contact(
         email=email,
         address=address,
         pincode=pincode,
+        company_name=company_name,
         address_proof=filename,
     )
 
@@ -56,5 +58,3 @@ async def update_contact(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Pydantic Validation Error. Please contact the developer.",
         )
-    
-

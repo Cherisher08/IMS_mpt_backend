@@ -22,6 +22,7 @@ def create_contact(
     email: str = Form(...),
     address: str = Form(...),
     pincode: str = Form(...),
+    company_name: str = Form(...),
     address_proof: UploadFile = File(...),
     svc: ContactService = Depends(get_contact_service),
 ) -> Contact:
@@ -39,6 +40,7 @@ def create_contact(
         email=email,
         address=address,
         pincode=pincode,
+        company_name=company_name,
         address_proof=new_filename,
         created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
     )
