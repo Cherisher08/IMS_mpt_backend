@@ -25,7 +25,7 @@ class JwtService:
         self,
         user: dict,
     ) -> str:
-        expires_delta = timedelta(minutes=self.expiration)
+        expires_delta = timedelta(seconds=self.expiration)
 
         jwt_data = {
             "sub": str(user["_id"]),

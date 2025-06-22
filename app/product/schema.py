@@ -4,38 +4,36 @@ from typing import Optional
 from pydantic import Field
 
 from app.auth.schema import PyObjectId
+from app.product_category.schema import ProductCategory
+from app.unit.schema import Unit
 from app.utils import AppModel
 
 
-class Unit(AppModel):
-    id: PyObjectId = Field(alias="_id")
-    name: str
-    symbol: str
-
-
-class ProductCategory(AppModel):
-    id: PyObjectId = Field(alias="_id")
-    name: str
-
-
-class ProductType(Enum):
+class ProductType(str, Enum):
     SALES = "sales"
     RENTAL = "rental"
     SERVICE = "service"
+    
+
+class DiscountType(str, Enum):
+    PERCENT = "percent"
+    RUPEES = "rupees"
 
 
 class Product(AppModel):
     id: Optional[PyObjectId] = Field(default=None,alias="_id")
     name: str
-    created_by: str
     created_at: datetime
     quantity: int
+    available_stock: int
+    repair_count: int
     product_code: str
-    category: str
+    category: ProductCategory
     price: int
-    type: str
+    type: ProductType
     purchase_date: datetime
-    unit: str
-    rent_per_unit: int
-    discount: int
-    discount_type: str
+    unit: Unit
+    rent_per_unit: float
+    discount: float
+    discount_type: DiscountType
+    gst_percent: float

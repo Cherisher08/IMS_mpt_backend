@@ -13,9 +13,9 @@ class ProductRepository:
     def create_product(self, product: Product):
         payload = {
             "name": product.name,
-            "created_by": product.created_by,
             "created_at": datetime.now(tz=timezone.utc),
             "quantity": product.quantity,
+            "available_stock": product.available_stock,
             "product_code": product.product_code,
             "category": product.category,
             "price": product.price,
@@ -25,6 +25,7 @@ class ProductRepository:
             "rent_per_unit": product.rent_per_unit,
             "discount": product.discount,
             "discount_type": product.discount_type,
+            "gst_percent": product.gst_percent,
         }
 
         result = self.database["products"].insert_one(payload)
@@ -33,9 +34,9 @@ class ProductRepository:
     def update_product(self, product_id: str, product: Product):
         payload = {
             "name": product.name,
-            "created_by": product.created_by,
             "created_at": datetime.now(tz=timezone.utc),
             "quantity": product.quantity,
+            "available_stock": product.available_stock,
             "product_code": product.product_code,
             "category": product.category,
             "price": product.price,
@@ -43,7 +44,11 @@ class ProductRepository:
             "purchase_date": product.purchase_date,
             "unit": product.unit,
             "rent_per_unit": product.rent_per_unit,
+            "discount": product.discount,
+            "discount_type": product.discount_type,
+            "gst_percent": product.gst_percent,
         }
+
         self.database["products"].update_one(
             {"_id": ObjectId(product_id)}, {"$set": {**payload}}
         )
