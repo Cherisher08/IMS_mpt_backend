@@ -16,12 +16,13 @@ from . import router
 )
 def create_contact(
     name: str = Form(...),
-    personal: str = Form(...),
-    office: str = Form(...),
+    personal_number: str = Form(...),
+    office_number: str = Form(...),
     gstin: str = Form(...),
     email: str = Form(...),
     address: str = Form(...),
     pincode: str = Form(...),
+    company_name: str = Form(...),
     address_proof: UploadFile = File(...),
     svc: ContactService = Depends(get_contact_service),
 ) -> Contact:
@@ -33,12 +34,13 @@ def create_contact(
 
     payload = Contact(
         name=name,
-        personal=personal,
-        office=office,
+        personal_number=personal_number,
+        office_number=office_number,
         gstin=gstin,
         email=email,
         address=address,
         pincode=pincode,
+        company_name=company_name,
         address_proof=new_filename,
         created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
     )

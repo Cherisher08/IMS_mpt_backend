@@ -9,13 +9,14 @@ from app.utils import AppModel
 class Contact(AppModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     name: str
-    personal: str
-    office: Optional[str]
+    personal_number: str
+    office_number: Optional[str]
     gstin: str
     email: Optional[EmailStr]
     address: str
     pincode: str
     address_proof: str
+    company_name:str
     created_at: datetime = Field(
         default_factory=(lambda _: datetime.now(tz=timezone.utc))
     )

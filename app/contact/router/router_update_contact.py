@@ -1,5 +1,3 @@
-from datetime import datetime
-import os
 from fastapi import Depends, Form, UploadFile, File, HTTPException, status
 from pydantic_core import ValidationError
 
@@ -14,14 +12,14 @@ from . import router
     response_model=Contact,
 )
 async def update_contact(
-    id: str,
     name: str = Form(...),
-    personal: str = Form(...),
-    office: str = Form(...),
+    personal_number: str = Form(...),
+    office_number: str = Form(...),
     gstin: str = Form(...),
     email: str = Form(...),
     address: str = Form(...),
     pincode: str = Form(...),
+    company_name: str = Form(...),
     created_at: str = Form(...),
     address_proof: UploadFile = File(...),
     svc: ContactService = Depends(get_contact_service),
@@ -32,12 +30,13 @@ async def update_contact(
 
     payload = Contact(
         name=name,
-        personal=personal,
-        office=office,
+        personal_number=personal_number,
+        office_number=office_number,
         gstin=gstin,
         email=email,
         address=address,
         pincode=pincode,
+        company_name=company_name,
         address_proof=filename,
     )
 
