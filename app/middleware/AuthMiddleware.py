@@ -1,17 +1,26 @@
-from fastapi import HTTPException, Request, status
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from jose import jwt, JWTError
 from app.config import env
 
+
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in ["/", "/docs", "/favicon.ico", "/openapi.json"] or request.url.path.startswith("/auth/users"):
+        if request.url.path in [
+            "/",
+            "/docs",
+            "/favicon.ico",
+            "/openapi.json",
+        ] or request.url.path.startswith("/auth/users"):
+            print("reached")
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized"},
             )
 
         token = auth_header.split("Bearer ")[1]
@@ -19,9 +28,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         try:
             jwt.decode(token, env.secret_key, algorithms="HS256")
         except JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Access Token is Expired or Invalid. Please Login again"
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "detail": " Access Token is Expired or Invalid. Please Login again"
+                },
             )
 
         response = await call_next(request)
