@@ -13,7 +13,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         #     "/favicon.ico",
         #     "/openapi.json",
         # ] or request.url.path.startswith("/auth/users"):
-        #     print("reached")
         #     return await call_next(request)
 
         # auth_header = request.headers.get("Authorization")

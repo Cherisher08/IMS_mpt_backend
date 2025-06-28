@@ -27,7 +27,6 @@ def verify_otp(
     user_data = svc.repository.get_user_by_email(email)
     if not user_data:
         error_message = f"User with email {email} not found"
-        print(error_message)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:

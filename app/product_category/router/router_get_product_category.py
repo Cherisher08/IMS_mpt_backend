@@ -19,7 +19,6 @@ def get_product_category_by_id(
     id: str,
     svc: ProductCategoryService = Depends(get_product_category_service),
 ) -> ProductCategory:
-    print("svc: ", svc)
     product_category_data = svc.repository.get_product_category_by_id(
         product_category_id=id
     )

@@ -29,7 +29,6 @@ def get_products(
 
     try:
         product_data = [ProductDB(**product) for product in product_data]
-        print('product_data: ', product_data)
         for product in product_data:
             product.category = get_product_category_by_id(id=product.category, svc=get_product_category_service())
             product.unit = get_unit_by_id(id=product.unit, svc=get_unit_service())
