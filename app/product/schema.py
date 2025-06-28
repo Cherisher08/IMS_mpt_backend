@@ -36,4 +36,3 @@ class Product(AppModel):
     rent_per_unit: float
     discount: float
     discount_type: DiscountType
-    gst_percent: float
