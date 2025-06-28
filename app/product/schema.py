@@ -20,7 +20,24 @@ class DiscountType(str, Enum):
     RUPEES = "rupees"
 
 
-class Product(AppModel):
+class ProductDB(AppModel):
+    id: Optional[PyObjectId] = Field(default=None,alias="_id")
+    name: str
+    created_at: datetime
+    quantity: int
+    available_stock: int
+    repair_count: int
+    product_code: str
+    category: str
+    price: int
+    type: ProductType
+    purchase_date: datetime
+    unit: str
+    rent_per_unit: float
+    discount: float
+    discount_type: DiscountType
+    
+class ProductResponse(AppModel):
     id: Optional[PyObjectId] = Field(default=None,alias="_id")
     name: str
     created_at: datetime

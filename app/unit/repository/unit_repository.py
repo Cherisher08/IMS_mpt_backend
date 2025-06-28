@@ -17,12 +17,12 @@ class UnitRepository:
         }
 
         result = self.database["units"].insert_one(payload)
-        return self.get_product_category_by_id(unit=result.inserted_id)
+        return self.get_unit_by_id(unit_id=result.inserted_id)
 
-    def get_unit_by_id(self, unit: str):
+    def get_unit_by_id(self, unit_id: str):
         unit = self.database["units"].find_one(
             {
-                "_id": ObjectId(unit),
+                "_id": ObjectId(unit_id),
             }
         )
         return unit
