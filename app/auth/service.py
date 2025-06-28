@@ -7,7 +7,7 @@ from app.config import env
 class Service:
     def __init__(self, auth_user_repository: AuthRepository):
         self.repository = auth_user_repository
-        self.jwt_svc = JwtService(algorithm="HS256", secret=env.secret_key, expiration=30)
+        self.jwt_svc = JwtService(algorithm="HS256", secret=env.secret_key, expiration=1)
 
 
 def get_service():

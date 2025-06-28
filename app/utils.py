@@ -4,7 +4,7 @@ import pkgutil
 import secrets
 
 from email.message import EmailMessage
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from bson.objectid import ObjectId
 from fastapi import HTTPException, status
@@ -68,3 +68,6 @@ def send_email(subject: str, email: str, custom_message: str) -> str:
         
 def generate_otp(length=6):
     return ''.join(secrets.choice("0123456789") for _ in range(length))
+
+def get_current_utc_time():
+    return datetime.now(tz=timezone.utc)

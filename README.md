@@ -30,7 +30,7 @@ docker-compose build
 2. Start the project
 
 ```bash
-docker-compose up -d
+poetry run uvicorn app.main:app --reload
 ```
 
 3. Watch logs
