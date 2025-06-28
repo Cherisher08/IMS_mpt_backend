@@ -16,6 +16,9 @@ def get_contact_by_id(
         )
 
     try:
+        contact_data["address_proof"] = (
+            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
+        )
         contact_data = Contact(**contact_data)
         return contact_data
     except ValidationError:

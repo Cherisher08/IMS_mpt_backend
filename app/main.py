@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
@@ -21,6 +22,8 @@ def startup_db_client():
 def shutdown_db_client():
     client.close()
 
+
+app.mount("/public", StaticFiles(directory="app/public"), name="Address Proofs")
 
 app.add_middleware(AuthMiddleware)
 

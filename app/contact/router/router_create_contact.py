@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from fastapi import Depends, HTTPException, status, Form, File, UploadFile
 from datetime import datetime, timezone
 from pydantic_core import ValidationError
@@ -23,27 +24,34 @@ def create_contact(
     address: str = Form(...),
     pincode: str = Form(...),
     company_name: str = Form(...),
-    address_proof: UploadFile = File(...),
+    address_proof: str = Form(...),
+    file: Optional[UploadFile] = File(None),
     svc: ContactService = Depends(get_contact_service),
 ) -> Contact:
-    unix_time = int(time.time())
-    _, ext = os.path.splitext(address_proof.filename)
-    new_filename = f"image_{unix_time}{ext}"
-
-    handle_upload(new_filename=new_filename, file=address_proof)
-
-    payload = Contact(
-        name=name,
-        personal_number=personal_number,
-        office_number=office_number,
-        gstin=gstin,
-        email=email,
-        address=address,
-        pincode=pincode,
-        company_name=company_name,
-        address_proof=new_filename,
-        created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
-    )
+    
+    if file: 
+        unix_time = int(time.time())
+        _, ext = os.path.splitext(file.filename)
+        new_filename = f"image_{unix_time}{ext}"
+        handle_upload(new_filename=new_filename, file=file)
+    try:
+        payload = Contact(
+            name=name,
+            personal_number=personal_number,
+            office_number=office_number,
+            gstin=gstin,
+            email=email,
+            address=address,
+            pincode=pincode,
+            company_name=company_name,
+            address_proof=new_filename or "",
+            created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
+        )
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Pydantic Validation Error. Please contact the developer.",
+        )
     contact_data = svc.repository.create_contact(contact=payload)
 
     if not contact_data:
@@ -53,6 +61,9 @@ def create_contact(
         )
 
     try:
+        contact_data["address_proof"] = (
+            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
+        )
         contact_data = Contact(**contact_data)
         return contact_data
     except ValidationError:

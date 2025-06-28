@@ -1,3 +1,6 @@
+import os
+import time
+from typing import Optional
 from fastapi import Depends, Form, UploadFile, File, HTTPException, status
 from pydantic_core import ValidationError
 
@@ -12,6 +15,7 @@ from . import router
     response_model=Contact,
 )
 async def update_contact(
+    id: str,
     name: str = Form(...),
     personal_number: str = Form(...),
     office_number: str = Form(...),
@@ -20,13 +24,17 @@ async def update_contact(
     address: str = Form(...),
     pincode: str = Form(...),
     company_name: str = Form(...),
-    created_at: str = Form(...),
-    address_proof: UploadFile = File(...),
+    address_proof: str = Form(...),
+    file: Optional[UploadFile] = File(None),
     svc: ContactService = Depends(get_contact_service),
 ):
-    current_data = svc.repository.get_contact_by_id(contact_id=id)
-    filename = current_data["address_proof"]
-    handle_upload(new_filename=filename, file=address_proof)
+    if file:
+        unix_time = int(time.time())
+        _, ext = os.path.splitext(file.filename)
+        filename = f"image_{unix_time}{ext}"
+        handle_upload(new_filename=filename, file=file)
+    else:
+        filename = address_proof
 
     payload = Contact(
         name=name,
@@ -48,6 +56,9 @@ async def update_contact(
         )
 
     try:
+        contact_data["address_proof"] = (
+            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
+        )
         contact_data = Contact(**contact_data)
         return contact_data
     except ValidationError:

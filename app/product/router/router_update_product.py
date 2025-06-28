@@ -13,9 +13,9 @@ from app.unit.unit_service import get_unit_service
 from . import router
 
 
-@router.post(
+@router.put(
     "/{id}",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     response_model=ProductResponse,
 )
 def update_product(

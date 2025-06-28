@@ -12,13 +12,14 @@ class ContactRepository:
     def create_contact(self, contact: Contact):
         payload = {
             "name": contact.name,
-            "personal": contact.personal,
-            "office": contact.office,
+            "personal_number": contact.personal_number,
+            "office_number": contact.office_number,
             "gstin": contact.gstin,
             "email": contact.email,
             "address": contact.address,
             "pincode": contact.pincode,
             "address_proof": contact.address_proof,
+            "company_name": contact.company_name,
             "created_at": contact.created_at,
         }
 
@@ -36,13 +37,14 @@ class ContactRepository:
     def update_contact(self, contact_id: str, contact: Contact):
         payload = {
             "name": contact.name,
-            "personal": contact.personal,
-            "office": contact.office,
+            "personal_number": contact.personal_number,
+            "office_number": contact.office_number,
             "gstin": contact.gstin,
             "email": contact.email,
             "address": contact.address,
             "pincode": contact.pincode,
             "address_proof": contact.address_proof,
+            "company_name": contact.company_name,
             "created_at": contact.created_at,
         }
 
