@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Union, Optional
 from enum import Enum
 
+from app.auth.schema import PyObjectId
 from app.contact.schema import Contact
 from app.product.schema import ProductResponse, ProductType
 from app.unit.schema import Unit
@@ -60,7 +61,7 @@ class Deposit(BaseModel):
 
 
 class Order(BaseModel):
-    _id: str
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
     customer: Contact
     billing_mode: BillingMode = Field(default=BillingMode.BUSINESS)
     discount: float = Field(default=0)

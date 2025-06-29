@@ -8,6 +8,7 @@ from app.product.router import router as product_router
 from app.contact.router import router as contact_router
 from app.product_category.router import router as product_category_router
 from app.unit.router import router as unit
+from app.order.router import router as orders
 from app.config import client, env, fastapi_config
 
 app = FastAPI(**fastapi_config)
@@ -42,6 +43,7 @@ app.include_router(
     product_category_router, prefix="/product-category", tags=["Product_Category"]
 )
 app.include_router(unit, prefix="/unit", tags=["Unit"])
+app.include_router(orders, prefix="/orders", tags=["Orders"])
 
 
 @app.get("/")
