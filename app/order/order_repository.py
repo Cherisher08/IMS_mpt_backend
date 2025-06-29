@@ -13,12 +13,13 @@ class OrderRepository:
     # ----------------------------
 
     def create_rental_order(self, order: RentalOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
+        print("payload: ", payload)
         result = self.database["rental_orders"].insert_one(payload)
         return self.get_rental_order_by_id(order_id=result.inserted_id)
 
     def update_rental_order(self, order_id: str, order: RentalOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
         self.database["rental_orders"].update_one(
             {"_id": ObjectId(order_id)}, {"$set": payload}
         )
@@ -39,12 +40,12 @@ class OrderRepository:
     # ----------------------------
 
     def create_sales_order(self, order: SalesOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
         result = self.database["sales_orders"].insert_one(payload)
         return self.get_sales_order_by_id(order_id=result.inserted_id)
 
     def update_sales_order(self, order_id: str, order: SalesOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
         self.database["sales_orders"].update_one(
             {"_id": ObjectId(order_id)}, {"$set": payload}
         )
@@ -65,12 +66,12 @@ class OrderRepository:
     # ----------------------------
 
     def create_service_order(self, order: ServiceOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
         result = self.database["service_orders"].insert_one(payload)
         return self.get_service_order_by_id(order_id=result.inserted_id)
 
     def update_service_order(self, order_id: str, order: ServiceOrder):
-        payload = {}
+        payload = order.model_dump(exclude=["id"])
         self.database["service_orders"].update_one(
             {"_id": ObjectId(order_id)}, {"$set": payload}
         )

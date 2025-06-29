@@ -54,9 +54,9 @@ def get_sales_orders(
 
     try:
         for order in order_data:
-            order["product"] = [
+            order["products"] = [
                 ProductResponse(**product)
-                for product in order["product"]
+                for product in order["products"]
             ]
         order_data = [SalesOrder(**order) for order in order_data]
         return order_data

@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import List, Union, Optional
+from typing import List, Optional
 from enum import Enum
 
 from app.auth.schema import PyObjectId
@@ -36,7 +36,7 @@ class PaymentMode(str, Enum):
 
 # Models
 class ProductLite(BaseModel):
-    _id: str
+    id: str
     name: str
 
 
@@ -46,8 +46,8 @@ class ProductDetails(BaseModel):
     category: str
     billing_unit: BillingUnit = Field(default=BillingUnit.DAYS)
     product_unit: Unit
-    inDate: str
-    outDate: str
+    in_date: Optional[datetime]
+    out_date: datetime
     order_repair_count: int
     order_quantity: int
     rent_per_unit: float
@@ -62,6 +62,7 @@ class Deposit(BaseModel):
 
 class Order(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    order_id: str
     customer: Contact
     billing_mode: BillingMode = Field(default=BillingMode.BUSINESS)
     discount: float = Field(default=0)
@@ -69,7 +70,7 @@ class Order(BaseModel):
     remarks: str
     round_off: float = Field(default=0)
     payment_mode: PaymentMode = Field(default=PaymentMode.CASH)
-    created_At: datetime = Field(default_factory=get_current_utc_time)
+    created_at: datetime = Field(default_factory=get_current_utc_time)
 
 
 class RentalOrder(Order):
@@ -86,7 +87,7 @@ class RentalOrder(Order):
 class SalesOrder(Order):
     type: ProductType = Field(default=ProductType.SALES)
     bill_date: datetime = Field(default_factory=get_current_utc_time)
-    productDetails: List[ProductResponse]
+    products: List[ProductResponse]
 
 
 class ServiceOrder(Order):

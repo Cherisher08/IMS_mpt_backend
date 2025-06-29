@@ -66,8 +66,8 @@ def update_sales_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
-        order_data["product"] = [
-            ProductResponse(**product) for product in order_data["product"]
+        order_data["products"] = [
+            ProductResponse(**product) for product in order_data["products"]
         ]
         return SalesOrder(**order_data)
     except ValidationError:
