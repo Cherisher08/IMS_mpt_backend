@@ -1,5 +1,5 @@
 from app.config import database
-from app.unit.repository.unit_repository import UnitRepository
+from app.unit.unit_repository import UnitRepository
 
 
 class UnitService:

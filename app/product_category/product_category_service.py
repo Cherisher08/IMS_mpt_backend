@@ -1,5 +1,5 @@
 from app.config import database
-from app.product_category.repository.product_category_repository import ProductCategoryRepository
+from app.product_category.product_category_repository import ProductCategoryRepository
 
 
 class ProductCategoryService:

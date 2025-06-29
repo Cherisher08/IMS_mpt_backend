@@ -1,5 +1,5 @@
 from app.config import database
-from app.contact.repository.contact_repository import ContactRepository
+from app.contact.contact_repository import ContactRepository
 
 
 class ContactService:

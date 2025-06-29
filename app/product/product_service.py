@@ -1,9 +1,9 @@
 from app.config import database
-from app.product.repository.product_repository import ProductRepository
-from app.product_category.repository.product_category_repository import (
+from app.product.product_repository import ProductRepository
+from app.product_category.product_category_repository import (
     ProductCategoryRepository,
 )
-from app.unit.repository.unit_repository import UnitRepository
+from app.unit.unit_repository import UnitRepository
 
 
 class ProductService:
