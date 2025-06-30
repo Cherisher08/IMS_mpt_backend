@@ -13,13 +13,12 @@ class OrderRepository:
     # ----------------------------
 
     def create_rental_order(self, order: RentalOrder):
-        payload = order.model_dump(exclude=["id"])
-        print("payload: ", payload)
+        payload = order.model_dump(exclude=["id"], by_alias=True)
         result = self.database["rental_orders"].insert_one(payload)
         return self.get_rental_order_by_id(order_id=result.inserted_id)
 
     def update_rental_order(self, order_id: str, order: RentalOrder):
-        payload = order.model_dump(exclude=["id"])
+        payload = order.model_dump(exclude=["id"], by_alias=True)
         self.database["rental_orders"].update_one(
             {"_id": ObjectId(order_id)}, {"$set": payload}
         )

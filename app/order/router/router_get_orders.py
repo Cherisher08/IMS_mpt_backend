@@ -34,10 +34,10 @@ def get_rental_orders(
             ]
         order_data = [RentalOrder(**order) for order in order_data]
         return order_data
-    except ValidationError:
+    except ValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Pydantic Validation Error. Please Contact Admin or Developer.",
+            detail=f"Pydantic Validation Error. Please Contact Admin or Developer. ${e}",
         )
 @router.get(
     "/sales",

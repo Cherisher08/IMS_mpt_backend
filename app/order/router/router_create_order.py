@@ -26,7 +26,9 @@ def create_rental_order(
 ) -> RentalOrder:
     order_data = svc.repository.create_rental_order(order=payload)
     if not order_data:
-        error_message = "The Rental Order is not created properly or not Found. Please try again"
+        error_message = (
+            "The Rental Order is not created properly or not Found. Please try again"
+        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
@@ -56,7 +58,9 @@ def create_sales_order(
 ) -> SalesOrder:
     order_data = svc.repository.create_sales_order(order=payload)
     if not order_data:
-        error_message = "The Sales Order is not created properly or not found. Please try again"
+        error_message = (
+            "The Sales Order is not created properly or not found. Please try again"
+        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
@@ -77,7 +81,7 @@ def create_sales_order(
     response_model=ServiceOrder,
 )
 def create_service_order(
-    payload:ServiceOrder,
+    payload: ServiceOrder,
     svc: OrderService = Depends(get_order_service),
 ) -> ServiceOrder:
     order_data = svc.repository.create_service_order(order=payload)

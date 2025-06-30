@@ -4,9 +4,9 @@ from typing import List, Optional
 from enum import Enum
 
 from app.auth.schema import PyObjectId
-from app.contact.schema import Contact
+from app.contact.schema import ContactResponse
 from app.product.schema import ProductResponse, ProductType
-from app.unit.schema import Unit
+from app.unit.schema import UnitResponse
 from app.utils import get_current_utc_time
 
 
@@ -36,16 +36,16 @@ class PaymentMode(str, Enum):
 
 # Models
 class ProductLite(BaseModel):
-    id: str
+    id: str = Field(default=None, alias="_id")
     name: str
 
 
 class ProductDetails(BaseModel):
-    _id: str
+    id: str = Field(alias="_id")
     name: str
     category: str
     billing_unit: BillingUnit = Field(default=BillingUnit.DAYS)
-    product_unit: Unit
+    product_unit: UnitResponse
     in_date: Optional[datetime]
     out_date: datetime
     order_repair_count: int
@@ -63,7 +63,7 @@ class Deposit(BaseModel):
 class Order(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     order_id: str
-    customer: Contact
+    customer: ContactResponse
     billing_mode: BillingMode = Field(default=BillingMode.BUSINESS)
     discount: float = Field(default=0)
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
@@ -71,6 +71,7 @@ class Order(BaseModel):
     round_off: float = Field(default=0)
     payment_mode: PaymentMode = Field(default=PaymentMode.CASH)
     created_at: datetime = Field(default_factory=get_current_utc_time)
+    gst: float
 
 
 class RentalOrder(Order):
