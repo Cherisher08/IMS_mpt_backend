@@ -6,7 +6,7 @@ from . import router
 
 
 @router.delete(
-    "/{id}",
+    "/rentals/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_rental_order(
@@ -21,7 +21,7 @@ def delete_rental_order(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.delete(
-    "/{id}",
+    "/sales/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_sales_order(
@@ -36,7 +36,7 @@ def delete_sales_order(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.delete(
-    "/{id}",
+    "/service/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_service_order(
