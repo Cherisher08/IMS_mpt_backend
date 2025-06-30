@@ -1,16 +1,30 @@
-FROM python:3.11 as requirements-stage
+# Use official Python image
+FROM python:3.12-slim
 
-WORKDIR /tmp
-RUN pip install poetry==1.5.0
-COPY ./pyproject.toml ./poetry.lock* /tmp/
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes --with=dev
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=2.1.3
 
+# Set working directory
+WORKDIR /app
 
-FROM python:3.11
+# Install Poetry
+RUN pip install --upgrade pip && \
+    pip install poetry==$POETRY_VERSION
 
-WORKDIR /code
-COPY --from=requirements-stage /tmp/requirements.txt .
-RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
-COPY . .
+# Copy project files
+COPY pyproject.toml poetry.lock /app/
+COPY app /app/app
 
-ENTRYPOINT ["sh", "./scripts/launch_prod.sh"]
+# Configure Poetry to not create a virtualenv (Docker already isolates env)
+RUN poetry config virtualenvs.create false
+
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi
+
+# Expose port
+EXPOSE 8000
+
+# Run the FastAPI app with uvicorn (dev mode with --reload)
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
