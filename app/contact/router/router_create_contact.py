@@ -28,9 +28,10 @@ def create_contact(
     file: Optional[UploadFile] = File(None),
     svc: ContactService = Depends(get_contact_service),
 ) -> Contact:
-    
-    if file: 
-        unix_time = int(time.time())
+    new_filename = ""
+    unix_time = int(time.time())
+
+    if file:
         _, ext = os.path.splitext(file.filename)
         new_filename = f"image_{unix_time}{ext}"
         handle_upload(new_filename=new_filename, file=file)
@@ -44,14 +45,16 @@ def create_contact(
             address=address,
             pincode=pincode,
             company_name=company_name,
-            address_proof=new_filename or "",
+            address_proof=new_filename,
             created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
         )
-    except ValidationError:
+    except ValidationError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Pydantic Validation Error. Please contact the developer.",
+            detail=f"Pydantic Validation Error. Please contact the developer. ${e}",
         )
+    print(payload)
     contact_data = svc.repository.create_contact(contact=payload)
 
     if not contact_data:
@@ -61,9 +64,10 @@ def create_contact(
         )
 
     try:
-        contact_data["address_proof"] = (
-            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
-        )
+        if contact_data["address_proof"] != "":
+            contact_data["address_proof"] = (
+                f"http://localhost:8000/public/contact/{contact_data['address_proof']}"
+            )
         contact_data = Contact(**contact_data)
         return contact_data
     except ValidationError:

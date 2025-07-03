@@ -20,9 +20,10 @@ def get_contacts(
 
     for contact in contact_data:
         try:
-            contact["address_proof"] = (
-                f"http://localhost:8000/public/contact/{contact["address_proof"]}"
-            )
+            if contact["address_proof"]:
+                contact["address_proof"] = (
+                    f"http://localhost:8000/public/contact/{contact["address_proof"]}"
+                )
             contact = Contact(**contact)
         except ValidationError as e:
             raise HTTPException(
