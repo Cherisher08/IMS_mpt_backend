@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-from pydantic import Field, EmailStr
+from pydantic import Field, EmailStr, validator
 
 from app.auth.schema import PyObjectId
 from app.utils import AppModel
@@ -12,7 +12,7 @@ class Contact(AppModel):
     personal_number: str
     office_number: Optional[str]
     gstin: str
-    email: Optional[EmailStr]
+    email: str
     address: str
     pincode: str
     address_proof: str

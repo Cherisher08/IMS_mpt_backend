@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import os
 import time
 from typing import Optional
@@ -28,8 +29,8 @@ async def update_contact(
     file: Optional[UploadFile] = File(None),
     svc: ContactService = Depends(get_contact_service),
 ):
+    unix_time = int(time.time())
     if file:
-        unix_time = int(time.time())
         _, ext = os.path.splitext(file.filename)
         filename = f"image_{unix_time}{ext}"
         handle_upload(new_filename=filename, file=file)
@@ -46,6 +47,7 @@ async def update_contact(
         pincode=pincode,
         company_name=company_name,
         address_proof=filename,
+        created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
     )
 
     contact_data = svc.repository.update_contact(contact_id=id, contact=payload)
