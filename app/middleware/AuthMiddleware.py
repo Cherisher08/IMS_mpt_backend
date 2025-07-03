@@ -7,12 +7,17 @@ from app.config import env
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in [
-            "/",
-            "/docs",
-            "/favicon.ico",
-            "/openapi.json",
-        ] or request.url.path.startswith("/auth/users"):
+        if (
+            request.url.path
+            in [
+                "/",
+                "/docs",
+                "/favicon.ico",
+                "/openapi.json",
+            ]
+            or request.url.path.startswith("/auth/users")
+            or request.url.path.startswith("/public")
+        ):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")

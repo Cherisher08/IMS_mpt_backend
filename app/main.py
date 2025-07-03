@@ -24,7 +24,7 @@ def shutdown_db_client():
     client.close()
 
 
-app.mount("/public", StaticFiles(directory="app/public"), name="Address Proofs")
+app.mount("/public", StaticFiles(directory="app/public"), name="public")
 
 app.add_middleware(AuthMiddleware)
 
