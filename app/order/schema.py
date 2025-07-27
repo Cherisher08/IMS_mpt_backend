@@ -82,7 +82,6 @@ class RentalOrder(Order):
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
     event_address: str
-    event_pincode: str
 
 
 class SalesOrder(Order):

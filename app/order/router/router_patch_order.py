@@ -41,7 +41,8 @@ def patch_rental_order(
         ]
         print('existing_order["deposits"]: ', existing_order["deposits"])
         order = RentalOrder(**existing_order)
-    except ValidationError:
+    except ValidationError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Pydantic Validation Error. Please Contact Admin or Developer.",
@@ -61,7 +62,8 @@ def patch_rental_order(
             Deposit(**dp) for dp in updated_order.get("deposits", [])
         ]
         return RentalOrder(**updated_order)
-    except ValidationError:
+    except ValidationError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Pydantic Validation Error. Please contact the admin or developer.",
