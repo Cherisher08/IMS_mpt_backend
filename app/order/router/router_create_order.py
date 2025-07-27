@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import Depends, HTTPException, status
 from pydantic_core import ValidationError
 
@@ -40,10 +39,10 @@ def create_rental_order(
             Deposit(**product_detail) for product_detail in order_data["deposits"]
         ]
         return RentalOrder(**order_data)
-    except ValidationError:
+    except ValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Pydantic Validation Error. Please Contact Admin or Developer.",
+            detail=f"Pydantic Validation Error. Please Contact Admin or Developer.${e}",
         )
 
 

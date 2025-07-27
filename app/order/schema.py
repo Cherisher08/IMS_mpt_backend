@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Any, List, Literal, Optional
 from enum import Enum
 
 from app.auth.schema import PyObjectId
@@ -56,7 +56,7 @@ class ProductDetails(BaseModel):
 class Deposit(BaseModel):
     amount: float = Field(default=0)
     date: datetime
-    product: ProductLite
+    product: Optional[ProductLite]
     mode: PaymentMode = Field(default=PaymentMode.CASH)
 
 
@@ -82,7 +82,6 @@ class RentalOrder(Order):
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
     event_address: str
-    event_pincode: str
 
 
 class SalesOrder(Order):
@@ -95,3 +94,12 @@ class ServiceOrder(Order):
     type: ProductType = Field(default=ProductType.SERVICE)
     in_date: datetime
     out_date: datetime
+
+
+class PatchOperation(BaseModel):
+    op: Literal["add", "remove", "replace"]
+    path: str
+    value: Optional[Any] = None
+
+    class Config:
+        validate_by_name = True
