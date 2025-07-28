@@ -81,6 +81,7 @@ class RentalOrder(Order):
     expected_date: datetime
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
+    eway_amount: float = Field(default=0)
     event_address: str
 
 
