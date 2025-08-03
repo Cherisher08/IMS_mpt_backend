@@ -4,6 +4,7 @@ from pydantic_core import ValidationError
 
 from app.contact.schema import Contact
 from app.contact.contact_service import ContactService, get_contact_service
+from app.utils import env
 from . import router
 
 
@@ -22,7 +23,7 @@ def get_contacts(
         try:
             if contact["address_proof"]:
                 contact["address_proof"] = (
-                    f"http://localhost:8000/public/contact/{contact["address_proof"]}"
+                    f"{env.image_domain}/public/contact/{contact["address_proof"]}"
                 )
             contact = Contact(**contact)
         except ValidationError as e:

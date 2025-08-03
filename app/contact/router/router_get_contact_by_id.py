@@ -1,6 +1,7 @@
 from pydantic_core import ValidationError
 from app.contact.contact_service import ContactService, get_contact_service
 from app.contact.schema import Contact
+from app.utils import env
 from . import router
 from fastapi import Depends, HTTPException, status
 
@@ -17,7 +18,7 @@ def get_contact_by_id(
 
     try:
         contact_data["address_proof"] = (
-            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
+            f"{env.image_domain}/public/contact/{contact_data['address_proof']}"
         )
         contact_data = Contact(**contact_data)
         return contact_data

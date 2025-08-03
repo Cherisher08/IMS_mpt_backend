@@ -8,6 +8,7 @@ from pydantic_core import ValidationError
 from app.contact.contact_service import ContactService, get_contact_service
 from app.contact.schema import Contact
 from app.contact.utils import handle_upload
+from app.utils import env
 from . import router
 
 
@@ -59,7 +60,7 @@ async def update_contact(
 
     try:
         contact_data["address_proof"] = (
-            f"http://localhost:8000/public/contact/{contact_data["address_proof"]}"
+            f"{env.image_domain}/public/contact/{contact_data['address_proof']}"
         )
         contact_data = Contact(**contact_data)
         return contact_data
@@ -68,5 +69,3 @@ async def update_contact(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Pydantic Validation Error. Please contact the developer.",
         )
-    
-

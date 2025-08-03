@@ -12,8 +12,8 @@ from app.utils import get_current_utc_time
 
 # Enums
 class BillingMode(str, Enum):
-    RETAIL = "Retail"
-    BUSINESS = "Business"
+    B2C = "B2C"
+    B2B = "B2B"
 
 
 class BillingUnit(str, Enum):
@@ -64,7 +64,7 @@ class Order(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     order_id: str
     customer: ContactResponse
-    billing_mode: BillingMode = Field(default=BillingMode.BUSINESS)
+    billing_mode: BillingMode = Field(default=BillingMode.B2B)
     discount: float = Field(default=0)
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     remarks: str
@@ -83,6 +83,8 @@ class RentalOrder(Order):
     product_details: List[ProductDetails]
     eway_amount: float = Field(default=0)
     event_address: str
+    event_venue: str = Field(default="")
+    event_name: str = Field(default="")
 
 
 class SalesOrder(Order):

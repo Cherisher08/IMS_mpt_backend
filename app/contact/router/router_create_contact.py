@@ -7,6 +7,7 @@ import time
 from app.contact.contact_service import ContactService, get_contact_service
 from app.contact.schema import Contact
 from app.contact.utils import delete_file, handle_upload
+from app.utils import env
 from . import router
 
 
@@ -66,7 +67,7 @@ def create_contact(
     try:
         if contact_data["address_proof"] != "":
             contact_data["address_proof"] = (
-                f"http://localhost:8000/public/contact/{contact_data['address_proof']}"
+                f"{env.image_domain}/public/contact/{contact_data['address_proof']}"
             )
         contact_data = Contact(**contact_data)
         return contact_data

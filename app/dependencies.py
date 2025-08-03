@@ -46,6 +46,10 @@ class ENV:
         self.smtp_password = os.getenv("SMTP_PASSWORD")
         if not self.smtp_password:
             print("Missing mongodb url env")
+            
+        self.image_domain = os.getenv("IMAGE_DOMAIN", "https://ims-mpt-backend.onrender.com")
+        if not self.image_domain:
+            print("Missing image domain url")
 
         if self.missing_required_envs:
             error_message = (
