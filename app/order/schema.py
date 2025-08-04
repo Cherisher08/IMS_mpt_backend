@@ -51,6 +51,7 @@ class ProductDetails(BaseModel):
     order_repair_count: int
     order_quantity: int
     rent_per_unit: float
+    product_code: str
 
 
 class Deposit(BaseModel):
