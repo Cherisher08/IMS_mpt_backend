@@ -84,6 +84,7 @@ class RentalOrder(Order):
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
     eway_amount: float = Field(default=0)
+    eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
     event_address: str
     event_venue: str = Field(default="")
     event_name: str = Field(default="")
