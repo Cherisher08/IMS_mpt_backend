@@ -52,6 +52,7 @@ class ProductDetails(BaseModel):
     order_quantity: int
     rent_per_unit: float
     product_code: str = Field(default="")
+    duration: int = Field(default=0)
 
 
 class Deposit(BaseModel):
