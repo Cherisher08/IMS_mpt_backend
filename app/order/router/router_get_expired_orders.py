@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List
 from fastapi import Depends, HTTPException, status
 from pydantic_core import ValidationError
@@ -42,7 +42,7 @@ def get_rental_orders(
         expired_orders = [
             order
             for order in order_data
-            if order.expected_date and order.expected_date < now and order.status == PaymentStatus.PENDING
+            if order.out_date and (order.out_date + timedelta(days=order.rental_duration)) < now and order.status == PaymentStatus.PENDING
         ]
 
         if not expired_orders:

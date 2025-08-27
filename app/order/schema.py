@@ -65,7 +65,9 @@ class Deposit(BaseModel):
 class Order(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     order_id: str
-    customer: ContactResponse
+    customer: Optional[ContactResponse] = Field(
+        default=None,
+    )
     billing_mode: BillingMode = Field(default=BillingMode.B2B)
     discount: float = Field(default=0)
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
@@ -80,7 +82,7 @@ class RentalOrder(Order):
     type: ProductType = Field(default=ProductType.RENTAL)
     deposits: List[Deposit]
     out_date: datetime
-    expected_date: datetime
+    rental_duration: int = Field(default=0)
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
     eway_amount: float = Field(default=0)
