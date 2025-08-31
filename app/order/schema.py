@@ -85,6 +85,9 @@ class RentalOrder(Order):
     rental_duration: int = Field(default=0)
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
+    balance_paid_mode: PaymentMode = Field(default=PaymentMode.CASH)
+    balance_paid: float = Field(default=0)
+    repay_amount: float = Field(default=0)
     eway_amount: float = Field(default=0)
     eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
     event_address: str
