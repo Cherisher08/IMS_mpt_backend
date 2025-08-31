@@ -141,5 +141,4 @@ backup.dump
 backup.dump.gz
 .vscode
 
-requirements.txt
 .vercel
