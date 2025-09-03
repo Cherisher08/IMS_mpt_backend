@@ -29,9 +29,16 @@ class PaymentStatus(str, Enum):
 
 
 class PaymentMode(str, Enum):
+    NULL = "-"
     CASH = "cash"
     UPI = "upi"
     ACCOUNT = "account"
+    
+class RepaymentMode(str, Enum):
+    NULL = "-"
+    CASHLESS = "cash less"
+    UPILESS = "upi less"
+    KVBLESS = "kvb less"
 
 
 # Models
@@ -73,7 +80,7 @@ class Order(BaseModel):
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     remarks: str
     round_off: float = Field(default=0)
-    payment_mode: PaymentMode = Field(default=PaymentMode.CASH)
+    payment_mode: RepaymentMode = Field(default=RepaymentMode.NULL)
     created_at: datetime = Field(default_factory=get_current_utc_time)
     gst: float
 
@@ -85,7 +92,7 @@ class RentalOrder(Order):
     rental_duration: int = Field(default=0)
     in_date: Optional[datetime]
     product_details: List[ProductDetails]
-    balance_paid_mode: PaymentMode = Field(default=PaymentMode.CASH)
+    balance_paid_mode: PaymentMode = Field(default=PaymentMode.NULL)
     balance_paid: float = Field(default=0)
     repay_amount: float = Field(default=0)
     eway_amount: float = Field(default=0)
