@@ -60,6 +60,7 @@ class ProductDetails(BaseModel):
     rent_per_unit: float
     product_code: str = Field(default="")
     duration: int = Field(default=0)
+    damage:str = Field(default="")
 
 
 class Deposit(BaseModel):
@@ -95,6 +96,8 @@ class RentalOrder(Order):
     balance_paid_mode: PaymentMode = Field(default=PaymentMode.NULL)
     balance_paid: float = Field(default=0)
     repay_amount: float = Field(default=0)
+    repay_date: Optional[datetime] = Field(default=None)
+    balance_paid_date: Optional[datetime] = Field(default=None)
     eway_amount: float = Field(default=0)
     eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
     event_address: str
