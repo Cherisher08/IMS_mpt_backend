@@ -5,7 +5,7 @@ from enum import Enum
 
 from app.auth.schema import PyObjectId
 from app.contact.schema import ContactResponse
-from app.product.schema import ProductResponse, ProductType
+from app.product.schema import DiscountType, ProductResponse, ProductType
 from app.unit.schema import UnitResponse
 from app.utils import get_current_utc_time
 
@@ -78,6 +78,7 @@ class Order(BaseModel):
     )
     billing_mode: BillingMode = Field(default=BillingMode.B2B)
     discount: float = Field(default=0)
+    discount_type: DiscountType = Field(default=DiscountType.RUPEES)
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     remarks: str
     round_off: float = Field(default=0)
