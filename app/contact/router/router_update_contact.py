@@ -36,7 +36,7 @@ async def update_contact(
         filename = f"image_{unix_time}{ext}"
         handle_upload(new_filename=filename, file=file)
     else:
-        filename = address_proof
+        filename = os.path.basename(address_proof)
 
     payload = Contact(
         name=name,
