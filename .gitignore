@@ -142,3 +142,7 @@ backup.dump.gz
 .vscode
 
 .vercel
+
+# ...existing code...
+app/public/contact/*
+# ...existing code...
