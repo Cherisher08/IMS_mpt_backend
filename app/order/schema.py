@@ -67,6 +67,7 @@ class ProductDetails(BaseModel):
     product_code: str = Field(default="")
     duration: int = Field(default=0)
     damage:str = Field(default="")
+    type: ProductType = Field(default=ProductType.RENTAL)
 
 
 class Deposit(BaseModel):
