@@ -42,9 +42,9 @@ class RepaymentMode(str, Enum):
     
 class TransportType(str, Enum):
     NULL = "-"
-    UP = "UP"
-    DOWN = "DOWN"
-    BOTH = "BOTH"
+    UP = "Up"
+    DOWN = "Down"
+    BOTH = "Both"
 
 
 # Models
