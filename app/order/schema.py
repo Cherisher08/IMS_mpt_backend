@@ -39,6 +39,12 @@ class RepaymentMode(str, Enum):
     CASHLESS = "cash less"
     UPILESS = "upi less"
     KVBLESS = "kvb less"
+    
+class TransportType(str, Enum):
+    NULL = "-"
+    UP = "UP"
+    DOWN = "DOWN"
+    BOTH = "BOTH"
 
 
 # Models
@@ -100,6 +106,7 @@ class RentalOrder(Order):
     repay_date: Optional[datetime] = Field(default=None)
     balance_paid_date: Optional[datetime] = Field(default=None)
     eway_amount: float = Field(default=0)
+    eway_type: TransportType = Field(default=TransportType.NULL)
     eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
     event_address: str
     event_venue: str = Field(default="")
