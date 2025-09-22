@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Any, List, Literal, Optional
 from enum import Enum
 
@@ -59,7 +59,7 @@ class ProductDetails(BaseModel):
     category: str
     billing_unit: BillingUnit = Field(default=BillingUnit.DAYS)
     product_unit: UnitResponse
-    in_date: Optional[datetime]
+    in_date: Optional[datetime] = None
     out_date: datetime
     order_repair_count: int
     order_quantity: int
@@ -68,6 +68,12 @@ class ProductDetails(BaseModel):
     duration: int = Field(default=0)
     damage:str = Field(default="")
     type: ProductType = Field(default=ProductType.RENTAL)
+    
+    @field_validator("in_date", mode="before")
+    def empty_string_to_none(cls, v):
+        if v == "" or v is None:
+            return None
+        return v 
 
 
 class Deposit(BaseModel):
