@@ -70,7 +70,6 @@ def upload_media_to_whatsapp(file_name: str):
 
     url = f"https://graph.facebook.com/{version}/{phone_number_id}/media"
     file_path = os.path.join(UPLOAD_DIR, "order", file_name)
-    print('file_path: ', file_path)
     with open(file_path, "rb") as f:
         headers = {"Authorization": f"Bearer {access_token}"}
         files = {"file": (file_name, f, "application/pdf")}
@@ -98,12 +97,11 @@ def send_whatsapp_message_with_pdf(mobile_number: str, message: str, file_id: st
         "to": mobile_number,
         "type": "document",
         "document": {
-            "id": "1137975958266581",
+            "id": file_id,
             "caption": message,
             "filename": file_name,
         },
     }
-    print('data: ', data)
 
     media_response = httpx.post(
         media_url,
