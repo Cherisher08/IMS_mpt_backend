@@ -1,5 +1,13 @@
+import os
 from fastapi import HTTPException
+from app.contact.utils import UPLOAD_DIR
 from app.order.schema import PatchOperation
+from app.dependencies import env
+import httpx
+
+access_token = env.access_token
+phone_number_id = env.phone_number_id
+version = env.version
 
 
 def apply_patch_operation(doc: dict, operation: PatchOperation):
@@ -54,3 +62,56 @@ def apply_patch_operation(doc: dict, operation: PatchOperation):
             status_code=400,
             detail=f"Error applying patch at path '{operation.path}': {str(e)}",
         )
+
+
+def upload_media_to_whatsapp(file_name: str):
+    if not access_token or not phone_number_id:
+        raise ValueError("Missing WhatsApp configuration in environment variables.")
+
+    url = f"https://graph.facebook.com/{version}/{phone_number_id}/media"
+    file_path = os.path.join(UPLOAD_DIR, "order", file_name)
+    print('file_path: ', file_path)
+    with open(file_path, "rb") as f:
+        headers = {"Authorization": f"Bearer {access_token}"}
+        files = {"file": (file_name, f, "application/pdf")}
+        data = {"messaging_product": "whatsapp"}
+        response = httpx.post(url, headers=headers, data=data, files=files)
+        print('response: ', response)
+        response.raise_for_status()
+
+    return response.json().get("id")  # Return media ID
+
+
+def send_whatsapp_message_with_pdf(mobile_number: str, message: str, file_id: str, file_name: str):
+    if not access_token or not phone_number_id:
+        raise ValueError("Missing WhatsApp configuration in environment variables.")
+
+    # Step 1: Upload the media (PDF)
+    media_url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
+    headers = {
+        "Authorization": "Bearer " + access_token,
+        "Content-Type": "application/json",
+    }
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": mobile_number,
+        "type": "document",
+        "document": {
+            "id": "1137975958266581",
+            "caption": message,
+            "filename": file_name,
+        },
+    }
+    print('data: ', data)
+
+    media_response = httpx.post(
+        media_url,
+        headers=headers,
+        data=data,
+        timeout=60,
+    )
+    print('media_response: ', media_response)
+    media_response.raise_for_status()
+
+    return media_response.json()

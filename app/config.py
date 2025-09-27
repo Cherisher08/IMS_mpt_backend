@@ -2,11 +2,7 @@ from typing import Any
 
 from pymongo import MongoClient
 
-from .dependencies import ENV
-
-
-# environmental variables
-env = ENV()
+from .dependencies import env
 
 # FastAPI configurations
 fastapi_config: dict[str, Any] = {

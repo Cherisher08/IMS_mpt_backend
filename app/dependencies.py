@@ -50,6 +50,26 @@ class ENV:
         self.image_domain = os.getenv("IMAGE_DOMAIN", "https://manipowertools.online")
         if not self.image_domain:
             print("Missing image domain url")
+            
+        self.phone_number_id = os.getenv("PHONE_NUMBER_ID", "")
+        if not self.phone_number_id:
+            print("Missing phone number id")
+        
+        self.access_token = os.getenv("ACCESS_TOKEN", "")
+        if not self.access_token:
+            print("Missing access token")
+        
+        self.app_id = os.getenv("APP_ID", "")
+        if not self.app_id:
+            print("Missing app id")
+            
+        self.app_secret = os.getenv("APP_SECRET", "")
+        if not self.app_secret:
+            print("Missing app secret")
+        
+        self.version = os.getenv("VERSION", "v18.0")
+        if not self.version:
+            print("Missing version")
 
         if self.missing_required_envs:
             error_message = (
@@ -57,3 +77,6 @@ class ENV:
             )
             print(error_message)
             raise EnvironmentError(error_message)
+        
+        
+env = ENV()

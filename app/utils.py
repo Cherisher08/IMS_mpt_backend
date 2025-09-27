@@ -10,9 +10,7 @@ from bson.objectid import ObjectId
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
-from app.dependencies import ENV
-
-env = ENV()
+from app.dependencies import env
 
 def convert_datetime_to_gmt(dt: datetime) -> str:
     if not dt.tzinfo:
