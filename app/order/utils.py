@@ -75,13 +75,15 @@ def upload_media_to_whatsapp(file_name: str):
         files = {"file": (file_name, f, "application/pdf")}
         data = {"messaging_product": "whatsapp"}
         response = httpx.post(url, headers=headers, data=data, files=files)
-        print('response: ', response)
+        print("response: ", response)
         response.raise_for_status()
 
     return response.json().get("id")  # Return media ID
 
 
-def send_whatsapp_message_with_pdf(mobile_number: str, message: str, file_id: str, file_name: str):
+def send_whatsapp_message_with_pdf(
+    mobile_number: str, message: str, file_id: str, file_name: str
+):
     if not access_token or not phone_number_id:
         raise ValueError("Missing WhatsApp configuration in environment variables.")
 
@@ -109,7 +111,7 @@ def send_whatsapp_message_with_pdf(mobile_number: str, message: str, file_id: st
         data=data,
         timeout=60,
     )
-    print('media_response: ', media_response)
+    print("media_response: ", media_response)
     media_response.raise_for_status()
 
     return media_response.json()

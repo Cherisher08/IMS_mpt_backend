@@ -1,7 +1,6 @@
-from fastapi import Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import HTTPException, status, UploadFile, File, Form
 
 from app.contact.utils import handle_upload
-from app.order.order_service import OrderService, get_order_service
 from app.order.utils import send_whatsapp_message_with_pdf, upload_media_to_whatsapp
 
 from . import router
@@ -18,15 +17,23 @@ async def whatsapp_order_dc(
     mobile_number: str = Form(...),
     message: str = Form(...),
     pdf_file: UploadFile = File(...),
-    svc: OrderService = Depends(get_order_service),
 ):
     file_name = f"temp_{pdf_file.filename}"
     handle_upload(new_filename=file_name, file=pdf_file, type="order")
 
     try:
         file_id = upload_media_to_whatsapp(file_name=file_name)
-        print('file_id: ', file_id)
-        send_whatsapp_message_with_pdf(mobile_number=mobile_number, message=message, file_id=file_id, file_name=file_name)
+        print("file_id: ", file_id)
+
+        if not mobile_number.startswith("+"):
+            mobile_number = "91" + mobile_number
+
+        send_whatsapp_message_with_pdf(
+            mobile_number=mobile_number,
+            message=message,
+            file_id=file_id,
+            file_name=file_name,
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
