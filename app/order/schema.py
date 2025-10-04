@@ -1,4 +1,5 @@
 from datetime import datetime
+from bson import ObjectId
 from pydantic import BaseModel, Field, field_validator
 from typing import Any, List, Literal, Optional
 from enum import Enum
@@ -8,6 +9,10 @@ from app.contact.schema import ContactResponse
 from app.product.schema import DiscountType, ProductResponse, ProductType
 from app.unit.schema import UnitResponse
 from app.utils import get_current_utc_time
+
+
+def gen_object_id():
+    return str(ObjectId())
 
 
 # Enums
@@ -33,13 +38,15 @@ class PaymentMode(str, Enum):
     CASH = "cash"
     UPI = "upi"
     ACCOUNT = "account"
-    
+
+
 class RepaymentMode(str, Enum):
     NULL = "-"
     CASHLESS = "cash less"
     UPILESS = "upi less"
     KVBLESS = "kvb less"
-    
+
+
 class TransportType(str, Enum):
     NULL = "-"
     UP = "Up"
@@ -66,17 +73,18 @@ class ProductDetails(BaseModel):
     rent_per_unit: float
     product_code: str = Field(default="")
     duration: int = Field(default=0)
-    damage:str = Field(default="")
+    damage: str = Field(default="")
     type: ProductType = Field(default=ProductType.RENTAL)
-    
+
     @field_validator("in_date", mode="before")
     def empty_string_to_none(cls, v):
         if v == "" or v is None:
             return None
-        return v 
+        return v
 
 
 class Deposit(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=gen_object_id, alias="_id")
     amount: float = Field(default=0)
     date: datetime
     product: Optional[ProductLite]
@@ -118,6 +126,7 @@ class RentalOrder(Order):
     event_address: str
     event_venue: str = Field(default="")
     event_name: str = Field(default="")
+    invoice_id: Optional[str] = Field(default=None)
 
 
 class SalesOrder(Order):
