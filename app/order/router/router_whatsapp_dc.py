@@ -19,7 +19,7 @@ async def whatsapp_order_dc(
     order_id: str = Form(...),
     pdf_file: UploadFile = File(...),
 ):
-    file_name = f"temp_{pdf_file.filename}"
+    file_name = f"{pdf_file.filename}"
     handle_upload(new_filename=file_name, file=pdf_file, type="order")
 
     try:
