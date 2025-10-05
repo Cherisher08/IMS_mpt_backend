@@ -82,36 +82,68 @@ def upload_media_to_whatsapp(file_name: str):
 
 
 def send_whatsapp_message_with_pdf(
-    mobile_number: str, message: str, file_id: str, file_name: str
+    mobile_number: str, customer_name: str, order_id: str, file_id: str, file_name: str
 ):
     if not access_token or not phone_number_id:
         raise ValueError("Missing WhatsApp configuration in environment variables.")
 
-    # Step 1: Upload the media (PDF)
     media_url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
     headers = {
-        "Authorization": "Bearer " + access_token,
+        "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": mobile_number,
-        "type": "document",
-        "document": {
-            "id": file_id,
-            "caption": message,
-            "filename": file_name,
+        "type": "template",
+        "template": {
+            "name": "send_order_dc",
+            "language": {"code": "en"},
+            "components": [
+                {
+                    "type": "header",
+                    "parameters": [
+                        {
+                            "type": "document",
+                            "parameter_name": "header_handle",
+                            "document": {
+                                "id": file_id,
+                                "filename": file_name,
+                            },
+                        }
+                    ],
+                },
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "parameter_name": "customer_name",
+                            "text": customer_name,
+                        },
+                        {
+                            "type": "text",
+                            "parameter_name": "order_id",
+                            "text": order_id,
+                        },
+                    ],
+                },
+            ],
         },
     }
 
     media_response = httpx.post(
         media_url,
         headers=headers,
-        data=data,
+        json=data,
         timeout=60,
     )
-    print("media_response: ", media_response)
+
+    if media_response.status_code != 200:
+        print("Request data: ", data)
+        print("Headers: ", headers)
+        print("URL: ", media_url)
     media_response.raise_for_status()
 
     return media_response.json()

@@ -15,7 +15,8 @@ from . import router
 )
 async def whatsapp_order_dc(
     mobile_number: str = Form(...),
-    message: str = Form(...),
+    customer_name: str = Form(...),
+    order_id: str = Form(...),
     pdf_file: UploadFile = File(...),
 ):
     file_name = f"temp_{pdf_file.filename}"
@@ -30,7 +31,8 @@ async def whatsapp_order_dc(
 
         send_whatsapp_message_with_pdf(
             mobile_number=mobile_number,
-            message=message,
+            customer_name=customer_name,
+            order_id=order_id,
             file_id=file_id,
             file_name=file_name,
         )
