@@ -72,7 +72,7 @@ def upload_media_to_whatsapp(file_name: str):
     file_path = os.path.join(UPLOAD_DIR, "order", file_name)
     with open(file_path, "rb") as f:
         headers = {"Authorization": f"Bearer {access_token}"}
-        files = {"file": (file_name, f, "application/pdf")}
+        files = {"file": (file_name, f, "image/png")}
         data = {"messaging_product": "whatsapp"}
         response = httpx.post(url, headers=headers, data=data, files=files)
         print("response: ", response)
@@ -98,20 +98,19 @@ def send_whatsapp_message_with_pdf(
         "to": mobile_number,
         "type": "template",
         "template": {
-            "name": "send_order_dc",
+            "name": "whatsapp_order_dc",
             "language": {"code": "en"},
             "components": [
                 {
                     "type": "header",
                     "parameters": [
                         {
-                            "type": "document",
+                            "type": "image",
                             "parameter_name": "header_handle",
-                            "document": {
+                            "image": {
                                 "id": file_id,
-                                "filename": file_name,
                             },
-                        }
+                        },
                     ],
                 },
                 {
