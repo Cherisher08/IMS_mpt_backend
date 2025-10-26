@@ -31,6 +31,8 @@ class BillingUnit(str, Enum):
 class PaymentStatus(str, Enum):
     PENDING = "pending"
     PAID = "paid"
+    CANCELLED = "cancelled"
+    NO_BILL = "no bill"
 
 
 class PaymentMode(str, Enum):
