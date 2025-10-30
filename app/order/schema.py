@@ -85,6 +85,15 @@ class ProductDetails(BaseModel):
         return v
 
 
+class DocumentNotification(BaseModel):
+    is_sent: bool = False
+    last_sent_date: Optional[datetime] = None
+
+class WhatsAppNotifications(BaseModel):
+    invoice: DocumentNotification = DocumentNotification()
+    delivery_challan: DocumentNotification = DocumentNotification()
+
+
 class Deposit(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=gen_object_id, alias="_id")
     amount: float = Field(default=0)
