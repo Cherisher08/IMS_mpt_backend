@@ -89,6 +89,7 @@ class DocumentNotification(BaseModel):
     is_sent: bool = False
     last_sent_date: Optional[datetime] = None
 
+
 class WhatsAppNotifications(BaseModel):
     invoice: DocumentNotification = DocumentNotification()
     delivery_challan: DocumentNotification = DocumentNotification()
@@ -138,6 +139,9 @@ class RentalOrder(Order):
     event_venue: str = Field(default="")
     event_name: str = Field(default="")
     invoice_id: Optional[str] = Field(default=None)
+    whatsapp_notifications: WhatsAppNotifications = Field(
+        default_factory=WhatsAppNotifications
+    )
 
 
 class SalesOrder(Order):
