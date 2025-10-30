@@ -52,6 +52,9 @@ async def update_contact(
     )
 
     contact_data = svc.repository.update_contact(contact_id=id, contact=payload)
+    svc.order_repository.update_rental_orders_contact_info(
+        contact_id=id, customer=payload
+    )
 
     if not contact_data:
         raise HTTPException(

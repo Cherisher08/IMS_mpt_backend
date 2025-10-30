@@ -34,6 +34,23 @@ class OrderRepository:
     def get_rental_orders(self):
         return list(self.database["rental_orders"].find({}))
 
+    def update_rental_orders_contact_info(self, contact_id: str, customer: object):
+        self.database["rental_orders"].update_many(
+            {"customer._id": contact_id},
+            {
+                "$set": {
+                    "customer.name": customer.name,
+                    "customer.personal_number": customer.personal_number,
+                    "customer.office_number": customer.office_number,
+                    "customer.gstin": customer.gstin,
+                    "customer.email": customer.email,
+                    "customer.address": customer.address,
+                    "customer.pincode": customer.pincode,
+                    "customer.company_name": customer.company_name,
+                }
+            },
+        )
+
     # ----------------------------
     # SALES ORDERS
     # ----------------------------
