@@ -81,8 +81,8 @@ def upload_media_to_whatsapp(file_name: str):
     return response.json().get("id")  # Return media ID
 
 
-def send_whatsapp_message_with_pdf(
-    mobile_number: str, customer_name: str, order_id: str, file_id: str, file_name: str
+def send_whatsapp_message_with_img(
+    mobile_number: str, customer_name: str, order_id: str, file_id: str, bill_type: str
 ):
     if not access_token or not phone_number_id:
         raise ValueError("Missing WhatsApp configuration in environment variables.")
@@ -98,7 +98,7 @@ def send_whatsapp_message_with_pdf(
         "to": mobile_number,
         "type": "template",
         "template": {
-            "name": "whatsapp_order_dc",
+            "name": "send_order_dc",
             "language": {"code": "en"},
             "components": [
                 {
@@ -120,6 +120,11 @@ def send_whatsapp_message_with_pdf(
                             "type": "text",
                             "parameter_name": "customer_name",
                             "text": customer_name,
+                        },
+                        {
+                            "type": "text",
+                            "parameter_name": "bill",
+                            "text": bill_type,
                         },
                         {
                             "type": "text",

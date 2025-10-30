@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status, UploadFile, File, Form
 
 from app.contact.utils import handle_upload
-from app.order.utils import send_whatsapp_message_with_pdf, upload_media_to_whatsapp
+from app.order.utils import send_whatsapp_message_with_img, upload_media_to_whatsapp
 
 from . import router
 
@@ -16,6 +16,7 @@ from . import router
 async def whatsapp_order_dc(
     mobile_number: str = Form(...),
     customer_name: str = Form(...),
+    bill_type: str = Form(...),
     order_id: str = Form(...),
     pdf_file: UploadFile = File(...),
 ):
@@ -29,12 +30,12 @@ async def whatsapp_order_dc(
         if not mobile_number.startswith("+"):
             mobile_number = "91" + mobile_number
 
-        send_whatsapp_message_with_pdf(
+        send_whatsapp_message_with_img(
             mobile_number=mobile_number,
             customer_name=customer_name,
             order_id=order_id,
             file_id=file_id,
-            file_name=file_name,
+            bill_type=bill_type,
         )
     except Exception as e:
         raise HTTPException(
