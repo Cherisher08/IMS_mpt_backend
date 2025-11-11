@@ -142,6 +142,7 @@ class RentalOrder(Order):
     whatsapp_notifications: WhatsAppNotifications = Field(
         default_factory=WhatsAppNotifications
     )
+    invoice_date: Optional[datetime] = Field(default=None)
 
 
 class SalesOrder(Order):
