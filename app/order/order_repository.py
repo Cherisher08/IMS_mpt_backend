@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 from pymongo.database import Database
+from typing import Dict, Any, Optional
 
 from app.order.schema import RentalOrder, SalesOrder, ServiceOrder
 
@@ -31,8 +32,16 @@ class OrderRepository:
         result = self.database["rental_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_rental_orders(self):
-        return list(self.database["rental_orders"].find({}))
+    def get_rental_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+        """Get rental orders with filtering, sorting and pagination. limit=0 means retrieve all."""
+        query = filters or {}
+        cursor = self.database["rental_orders"].find(query)
+        if sort_spec:
+            cursor = cursor.sort(sort_spec)
+        cursor = cursor.skip(skip)
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        return list(cursor)
 
     def update_rental_orders_contact_info(self, contact_id: str, customer: object):
         self.database["rental_orders"].update_many(
@@ -74,8 +83,16 @@ class OrderRepository:
         result = self.database["sales_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_sales_orders(self):
-        return list(self.database["sales_orders"].find({}))
+    def get_sales_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+        """Get sales orders with filtering, sorting and pagination. limit=0 means retrieve all."""
+        query = filters or {}
+        cursor = self.database["sales_orders"].find(query)
+        if sort_spec:
+            cursor = cursor.sort(sort_spec)
+        cursor = cursor.skip(skip)
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        return list(cursor)
 
     # ----------------------------
     # SERVICE ORDERS
@@ -100,5 +117,13 @@ class OrderRepository:
         result = self.database["service_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_service_orders(self):
-        return list(self.database["service_orders"].find({}))
+    def get_service_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+        """Get service orders with filtering, sorting and pagination. limit=0 means retrieve all."""
+        query = filters or {}
+        cursor = self.database["service_orders"].find(query)
+        if sort_spec:
+            cursor = cursor.sort(sort_spec)
+        cursor = cursor.skip(skip)
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        return list(cursor)
