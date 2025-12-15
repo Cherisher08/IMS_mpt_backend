@@ -16,7 +16,3 @@ class PettyCash(AppModel):
     balance_paid_mode: PaymentMode = Field(default=PaymentMode.NULL)
     payment_mode: RepaymentMode = Field(default=RepaymentMode.NULL)
     repay_amount: float
-
-
-class PettyCashResponse(PettyCash):
-    id: Optional[str] = Field(default=None, alias="_id")
