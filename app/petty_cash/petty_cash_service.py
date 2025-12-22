@@ -9,6 +9,9 @@ class PettyCashService:
     ):
         self.repository = petty_cash_repository
 
+    def delete_petty_cash(self, petty_cash_id: str):
+        return self.repository.delete_petty_cash_by_id(petty_cash_id)
+
 
 def get_petty_cash_service():
     petty_cash_repository = PettyCashRepository(database=database)
