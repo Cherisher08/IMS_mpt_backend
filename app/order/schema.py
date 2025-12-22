@@ -115,7 +115,6 @@ class Order(BaseModel):
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     remarks: str
     round_off: float = Field(default=0)
-    damage_expenses: float = Field(default=0)
     payment_mode: RepaymentMode = Field(default=RepaymentMode.NULL)
     created_at: datetime = Field(default_factory=get_current_utc_time)
     gst: float
@@ -136,6 +135,7 @@ class RentalOrder(Order):
     eway_amount: float = Field(default=0)
     eway_type: TransportType = Field(default=TransportType.NULL)
     eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
+    damage_expenses: float = Field(default=0)
     event_address: str
     event_venue: str = Field(default="")
     event_name: str = Field(default="")
