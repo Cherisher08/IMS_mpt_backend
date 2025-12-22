@@ -115,6 +115,7 @@ class Order(BaseModel):
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     remarks: str
     round_off: float = Field(default=0)
+    damage_expenses: float = Field(default=0)
     payment_mode: RepaymentMode = Field(default=RepaymentMode.NULL)
     created_at: datetime = Field(default_factory=get_current_utc_time)
     gst: float
