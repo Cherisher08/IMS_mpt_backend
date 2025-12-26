@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import os
 
 from app.auth.router import router as auth_router
 from app.middleware.AuthMiddleware import AuthMiddleware
@@ -25,10 +27,12 @@ def shutdown_db_client():
     client.close()
 
 
-app.mount("/public", StaticFiles(directory="app/public"), name="public")
 
+# Add Auth middleware first so it runs earlier in the stack.
 app.add_middleware(AuthMiddleware)
 
+# Add CORS middleware after AuthMiddleware so CORS headers are always
+# applied to responses (including ones returned by AuthMiddleware).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=env.cors_origins,
@@ -36,6 +40,9 @@ app.add_middleware(
     allow_headers=env.cors_headers,
     allow_credentials=True,
 )
+
+# Mount static files after middleware so responses go through middleware stack
+app.mount("/public", StaticFiles(directory="app/public"), name="public")
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(product_router, prefix="/products", tags=["Product"])
@@ -51,3 +58,34 @@ app.include_router(petty_cash, prefix="/petty-cash", tags=["Petty Cash"])
 @app.get("/")
 def root():
     return f"Documentation is available at {app.docs_url}"
+
+
+@app.get("/download-static/contact/{file_name}")
+def download_contact_file(file_name: str):
+    """Serve a file from app/public/contact safely.
+
+    Example: GET /download-static/contact/image_123.png
+    """
+    # Basic filename validation to prevent path traversal
+    if ".." in file_name or file_name.startswith("/") or "\\" in file_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file name"
+        )
+
+    base_dir = os.path.join(os.path.dirname(__file__), "public", "contact")
+    file_path = os.path.join(base_dir, file_name)
+
+    # Ensure resolved path is inside the base_dir
+    try:
+        if os.path.commonpath([os.path.abspath(file_path), os.path.abspath(base_dir)]) != os.path.abspath(base_dir):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file path"
+            )
+    except ValueError:
+        # commonpath can raise ValueError on different drives on Windows
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file path")
+
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+    return FileResponse(path=file_path, filename=file_name)

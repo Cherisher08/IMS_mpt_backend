@@ -8,9 +8,29 @@ class ENV:
     def __init__(self):
         self.missing_required_envs = []
 
-        self.cors_origins = os.getenv("CORS_ORIGINS", ["*"])
+        # Parse CORS origins and headers from environment variables.
+        # Accept formats like:
+        # - unset -> will default to allow all ('*')
+        # - a single origin string
+        # - comma-separated origins
+        raw_origins = os.getenv("CORS_ORIGINS", "*")
+        if isinstance(raw_origins, str):
+            # split comma separated list and strip whitespace
+            if raw_origins.strip() == "*":
+                self.cors_origins = ["*"]
+            else:
+                self.cors_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+        else:
+            self.cors_origins = raw_origins
 
-        self.cors_headers = os.getenv("CORSE_HEADERS", ["*"])
+        raw_headers = os.getenv("CORS_HEADERS", "*")
+        if isinstance(raw_headers, str):
+            if raw_headers.strip() == "*":
+                self.cors_headers = ["*"]
+            else:
+                self.cors_headers = [h.strip() for h in raw_headers.split(",") if h.strip()]
+        else:
+            self.cors_headers = raw_headers
 
         self.cors_methods = os.getenv(
             "CORS_METHODS", ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
