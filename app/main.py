@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
+import re
 
 from app.auth.router import router as auth_router
 from app.middleware.AuthMiddleware import AuthMiddleware
@@ -13,6 +14,13 @@ from app.unit.router import router as unit
 from app.order.router import router as orders
 from app.config import client, env, fastapi_config
 from app.petty_cash.router import router as petty_cash
+
+
+
+def sanitize_filename(filename: str) -> str:
+    """Sanitize filename by replacing invalid characters with underscores."""
+    invalid_chars = r'[/\\:*?"<>|]'
+    return re.sub(invalid_chars, '_', filename)
 
 app = FastAPI(**fastapi_config)
 
@@ -66,8 +74,11 @@ def download_contact_file(file_name: str):
 
     Example: GET /download-static/contact/image_123.png
     """
-    # Basic filename validation to prevent path traversal
-    if ".." in file_name or file_name.startswith("/") or "\\" in file_name:
+    # Sanitize the filename
+    file_name = sanitize_filename(file_name)
+    
+    # Additional path traversal validation
+    if ".." in file_name or file_name.startswith("/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file name"
         )

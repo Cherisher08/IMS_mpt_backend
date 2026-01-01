@@ -1,12 +1,9 @@
 from fastapi import HTTPException, status, UploadFile, File, Form
 
-from app.contact.utils import handle_upload
+from app.contact.utils import handle_upload, sanitize_filename
 from app.order.utils import send_whatsapp_message_with_img, upload_media_to_whatsapp
 
 from . import router
-
-
-# ...existing imports...
 
 
 @router.post(
@@ -18,10 +15,10 @@ async def whatsapp_order_dc(
     customer_name: str = Form(...),
     bill_type: str = Form(...),
     order_id: str = Form(...),
-    pdf_file: UploadFile = File(...),
+    file: UploadFile = File(...),
 ):
-    file_name = f"{pdf_file.filename}"
-    handle_upload(new_filename=file_name, file=pdf_file, type="order")
+    file_name = sanitize_filename(f"{file.filename}")
+    handle_upload(new_filename=file_name, file=file, type="order")
 
     try:
         file_id = upload_media_to_whatsapp(file_name=file_name)
@@ -38,6 +35,7 @@ async def whatsapp_order_dc(
             bill_type=bill_type,
         )
     except Exception as e:
+        print(f"Error sending WhatsApp message: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to send WhatsApp message: {str(e)}",
