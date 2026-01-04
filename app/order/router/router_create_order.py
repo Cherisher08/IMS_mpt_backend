@@ -14,6 +14,7 @@ from app.order.schema import (
     PurchaseOrderProduct,
 )
 from app.product.schema import ProductResponse
+from app.contact.schema import ContactResponse
 from app.contact.utils import handle_upload, sanitize_filename
 from app.utils import env
 
@@ -131,6 +132,18 @@ def create_purchase_order(
             detail=f"Invalid products JSON: {str(e)}",
         )
 
+    # Parse supplier JSON if provided
+    parsed_supplier = None
+    if supplier and supplier != "null":
+        try:
+            supplier_data = json.loads(supplier)
+            parsed_supplier = ContactResponse(**supplier_data)
+        except (json.JSONDecodeError, ValidationError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid supplier JSON: {str(e)}",
+            )
+
     # Handle PDF upload
     invoice_pdf_path = None
     if invoice_pdf:
@@ -151,7 +164,7 @@ def create_purchase_order(
     # Build purchase order payload
     payload_dict = {
         "order_id": order_id,
-        "supplier": supplier,
+        "supplier": parsed_supplier,
         "purchase_date": purchase_date,
         "invoice_id": invoice_id,
         "products": [p.model_dump() for p in products],
