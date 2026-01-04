@@ -132,13 +132,13 @@ class OrderRepository:
     # PURCHASE ORDERS
     # ----------------------------
 
-    def create_purchase_order(self, order: PurchaseOrder):
-        payload = order.model_dump(exclude=["id"])
+    def create_purchase_order(self, order: "PurchaseOrder"):
+        payload = order.model_dump(exclude=["id"], by_alias=True)
         result = self.database["purchase_orders"].insert_one(payload)
-        return self.get_purchase_order_by_id(order_id=result.inserted_id)
+        return self.get_purchase_order_by_id(order_id=str(result.inserted_id))
 
-    def update_purchase_order(self, order_id: str, order: PurchaseOrder):
-        payload = order.model_dump(exclude=["id"])
+    def update_purchase_order(self, order_id: str, order: "PurchaseOrder"):
+        payload = order.model_dump(exclude=["id"], by_alias=True)
         self.database["purchase_orders"].update_one(
             {"_id": ObjectId(order_id)}, {"$set": payload}
         )

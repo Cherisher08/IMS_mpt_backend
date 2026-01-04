@@ -7,6 +7,7 @@ from enum import Enum
 from app.auth.schema import PyObjectId
 from app.contact.schema import ContactResponse
 from app.product.schema import DiscountType, ProductResponse, ProductType
+from app.product_category.schema import ProductCategory
 from app.unit.schema import UnitResponse
 from app.utils import get_current_utc_time
 
@@ -85,6 +86,21 @@ class ProductDetails(BaseModel):
         return v
 
 
+class PurchaseOrderProduct(BaseModel):
+    """Product item for purchase orders with full product details."""
+    id: Optional[PyObjectId] = Field(default_factory=gen_object_id, alias="_id")
+    name: str
+    product_code: str
+    category: ProductCategory
+    unit: UnitResponse
+    type: ProductType
+    rent_per_unit: float
+    quantity: float
+    price: float
+    discount: float = Field(default=0)
+    discount_type: DiscountType = Field(default=DiscountType.RUPEES)
+
+
 class DocumentNotification(BaseModel):
     is_sent: bool = False
     last_sent_date: Optional[datetime] = None
@@ -135,6 +151,8 @@ class RentalOrder(Order):
     eway_amount: float = Field(default=0)
     eway_type: TransportType = Field(default=TransportType.NULL)
     eway_mode: PaymentMode = Field(default=PaymentMode.CASH)
+    representative_name: Optional[str] = Field(default="")
+    representative_number: Optional[str] = Field(default="")
     damage_expenses: float = Field(default=0)
     event_address: str
     event_venue: str = Field(default="")
@@ -152,11 +170,15 @@ class SalesOrder(Order):
     products: List[ProductResponse]
 
 
-class PurchaseOrder(Order):
+class PurchaseOrder(BaseModel):
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    order_id: str
     type: ProductType = Field(default=ProductType.PURCHASE)
-    purchase_date: datetime = Field(default_factory=get_current_utc_time)
-    products: List[ProductResponse]
     supplier: Optional[ContactResponse] = Field(default=None)
+    purchase_date: datetime = Field(default_factory=get_current_utc_time)
+    products: List[PurchaseOrderProduct]
+    invoice_pdf_path: Optional[str] = Field(default=None, description="Path to invoice PDF file")
+    invoice_id: Optional[str] = Field(default=None, description="Invoice ID")
 
 
 class ServiceOrder(Order):

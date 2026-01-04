@@ -73,3 +73,34 @@ class ProductRepository:
     def get_products(self):
         products = self.database["products"].find({}).to_list()
         return products
+    
+    def increment_product_quantity(self, product_id: str, quantity: int):
+        """Increment product quantity and available_stock by the given amount."""
+        self.database["products"].update_one(
+            {"_id": ObjectId(product_id)},
+            {"$inc": {"quantity": quantity, "available_stock": quantity}}
+        )
+        return self.get_product_by_id(product_id=product_id)
+    
+    def create_product_from_purchase(self, name: str, product_code: str, category_id: str, 
+                                     unit_id: str, type_str: str, rent_per_unit: float,
+                                     quantity: int, price: float):
+        """Create a new product from purchase order product data."""
+        payload = {
+            "name": name,
+            "created_at": datetime.now(tz=timezone.utc),
+            "quantity": quantity,
+            "available_stock": quantity,
+            "repair_count": 0,
+            "product_code": product_code,
+            "category": category_id,
+            "price": price,
+            "type": type_str,
+            "purchase_date": datetime.now(tz=timezone.utc),
+            "unit": unit_id,
+            "rent_per_unit": rent_per_unit,
+            "discount": 0,
+            "discount_type": "rupees",
+        }
+        result = self.database["products"].insert_one(payload)
+        return self.get_product_by_id(product_id=str(result.inserted_id))

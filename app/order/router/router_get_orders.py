@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, status, Query
 from pydantic_core import ValidationError
 
 from app.order.order_service import OrderService, get_order_service
-from app.order.schema import Deposit, ProductDetails, RentalOrder, SalesOrder, ServiceOrder, PurchaseOrder
+from app.order.schema import Deposit, ProductDetails, PurchaseOrderProduct, RentalOrder, SalesOrder, ServiceOrder, PurchaseOrder
 from app.order.filters import FilterBuilder, SortBuilder
 from app.product.schema import ProductResponse
 
@@ -145,12 +145,13 @@ def get_purchase_orders(
     order_data = svc.repository.get_purchase_orders(filters=filters, sort_spec=sort_spec, skip=skip, limit=limit)
     if not order_data:
         error_message = "No Purchase Order Found. Please create new purchase order"
+        print('error_message: ', error_message)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
         for order in order_data:
             order["products"] = [
-                ProductResponse(**product) for product in order["products"]
+                PurchaseOrderProduct(**product) for product in order["products"]
             ]
         order_data = [PurchaseOrder(**order) for order in order_data]
         return order_data
