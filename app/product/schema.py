@@ -13,6 +13,7 @@ class ProductType(str, Enum):
     SALES = "sales"
     RENTAL = "rental"
     SERVICE = "service"
+    PURCHASE = "purchase"
     
 
 class DiscountType(str, Enum):

@@ -152,6 +152,13 @@ class SalesOrder(Order):
     products: List[ProductResponse]
 
 
+class PurchaseOrder(Order):
+    type: ProductType = Field(default=ProductType.PURCHASE)
+    purchase_date: datetime = Field(default_factory=get_current_utc_time)
+    products: List[ProductResponse]
+    supplier: Optional[ContactResponse] = Field(default=None)
+
+
 class ServiceOrder(Order):
     type: ProductType = Field(default=ProductType.SERVICE)
     in_date: datetime

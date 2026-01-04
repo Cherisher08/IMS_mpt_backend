@@ -8,6 +8,7 @@ from app.order.schema import (
     RentalOrder,
     SalesOrder,
     ServiceOrder,
+    PurchaseOrder,
 )
 from app.product.schema import ProductResponse
 
@@ -93,6 +94,33 @@ def update_service_order(
 
     try:
         return ServiceOrder(**order_data)
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Pydantic Validation Error. Please Contact Admin or Developer.",
+        )
+
+
+@router.put(
+    "/purchase/{id}",
+    status_code=status.HTTP_200_OK,
+    response_model=PurchaseOrder,
+)
+def update_purchase_order(
+    id: str,
+    payload: PurchaseOrder,
+    svc: OrderService = Depends(get_order_service),
+) -> PurchaseOrder:
+    order_data = svc.repository.update_purchase_order(order_id=id, order=payload)
+    if not order_data:
+        error_message = "The Purchase Order was not updated properly. Please verify and try again"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
+
+    try:
+        order_data["products"] = [
+            ProductResponse(**product) for product in order_data["products"]
+        ]
+        return PurchaseOrder(**order_data)
     except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

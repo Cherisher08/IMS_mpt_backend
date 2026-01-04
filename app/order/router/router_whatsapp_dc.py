@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status, UploadFile, File, Form
+import re
 
 from app.contact.utils import handle_upload, sanitize_filename
 from app.order.utils import send_whatsapp_message_with_img, upload_media_to_whatsapp
@@ -19,6 +20,11 @@ async def whatsapp_order_dc(
 ):
     file_name = sanitize_filename(f"{file.filename}")
     handle_upload(new_filename=file_name, file=file, type="order")
+
+    # sanitize customer name: remove control/escape characters and collapse whitespace
+    # removes characters like \n, \r, \t and other control chars
+    customer_name = re.sub(r"[\x00-\x1f\x7f]+", " ", customer_name)
+    customer_name = re.sub(r"\s+", " ", customer_name).strip()
 
     try:
         file_id = upload_media_to_whatsapp(file_name=file_name)

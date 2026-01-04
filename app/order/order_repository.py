@@ -2,7 +2,7 @@ from bson.objectid import ObjectId
 from pymongo.database import Database
 from typing import Dict, Any, Optional
 
-from app.order.schema import RentalOrder, SalesOrder, ServiceOrder
+from app.order.schema import RentalOrder, SalesOrder, ServiceOrder, PurchaseOrder
 
 
 class OrderRepository:
@@ -121,6 +121,40 @@ class OrderRepository:
         """Get service orders with filtering, sorting and pagination. limit=0 means retrieve all."""
         query = filters or {}
         cursor = self.database["service_orders"].find(query)
+        if sort_spec:
+            cursor = cursor.sort(sort_spec)
+        cursor = cursor.skip(skip)
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        return list(cursor)
+
+    # ----------------------------
+    # PURCHASE ORDERS
+    # ----------------------------
+
+    def create_purchase_order(self, order: PurchaseOrder):
+        payload = order.model_dump(exclude=["id"])
+        result = self.database["purchase_orders"].insert_one(payload)
+        return self.get_purchase_order_by_id(order_id=result.inserted_id)
+
+    def update_purchase_order(self, order_id: str, order: PurchaseOrder):
+        payload = order.model_dump(exclude=["id"])
+        self.database["purchase_orders"].update_one(
+            {"_id": ObjectId(order_id)}, {"$set": payload}
+        )
+        return self.get_purchase_order_by_id(order_id=order_id)
+
+    def get_purchase_order_by_id(self, order_id: str):
+        return self.database["purchase_orders"].find_one({"_id": ObjectId(order_id)})
+
+    def delete_purchase_order_by_id(self, order_id: str):
+        result = self.database["purchase_orders"].delete_one({"_id": ObjectId(order_id)})
+        return result.deleted_count
+
+    def get_purchase_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+        """Get purchase orders with filtering, sorting and pagination. limit=0 means retrieve all."""
+        query = filters or {}
+        cursor = self.database["purchase_orders"].find(query)
         if sort_spec:
             cursor = cursor.sort(sort_spec)
         cursor = cursor.skip(skip)

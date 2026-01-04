@@ -49,3 +49,18 @@ def delete_service_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete(
+    "/purchase/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_purchase_order(
+    id: str,
+    svc: OrderService = Depends(get_order_service),
+):
+    order_data = svc.repository.delete_purchase_order_by_id(order_id=id)
+    if order_data != 1:
+        error_message = "The Order was not deleted. Please try again"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
