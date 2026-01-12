@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-from pydantic import Field, EmailStr, validator
+from pydantic import Field
 
 from app.auth.schema import PyObjectId
 from app.utils import AppModel
