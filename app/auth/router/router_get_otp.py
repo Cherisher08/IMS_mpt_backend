@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from pydantic import EmailStr
 from pydantic_core import ValidationError
+from typing import Optional
 
 from app.auth.schema import GeneralResponse, RegisterUserResponse
 from app.utils import AppModel
@@ -11,7 +12,7 @@ from . import router
 
 class OtpPayload(AppModel):
     otp: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
 
 
 @router.post(
@@ -23,7 +24,7 @@ def verify_otp(
     payload: OtpPayload,
     svc: Service = Depends(get_service),
 ) -> GeneralResponse:
-    email = payload.email
+    email = payload.email or "mptsoftwareotp842@gmail.com"
     user_data = svc.repository.get_user_by_email(email)
     if not user_data:
         error_message = f"User with email {email} not found"
