@@ -61,7 +61,7 @@ class ProductRepository:
             }
         )
         return product
-    
+
     def delete_product_by_id(self, product_id: str):
         product = self.database["products"].delete_one(
             {
@@ -73,18 +73,29 @@ class ProductRepository:
     def get_products(self):
         products = self.database["products"].find({}).to_list()
         return products
-    
+
     def increment_product_quantity(self, product_id: str, quantity: int):
         """Increment product quantity and available_stock by the given amount."""
         self.database["products"].update_one(
             {"_id": ObjectId(product_id)},
-            {"$inc": {"quantity": quantity, "available_stock": quantity}}
+            {"$inc": {"quantity": quantity, "available_stock": quantity}},
         )
         return self.get_product_by_id(product_id=product_id)
-    
-    def create_product_from_purchase(self, name: str, product_code: str, category_id: str, 
-                                     unit_id: str, type_str: str, rent_per_unit: float,
-                                     quantity: int, price: float):
+
+    def create_product_from_purchase(
+        self,
+        name: str,
+        product_code: str,
+        category_id: str,
+        unit_id: str,
+        type_str: str,
+        rent_per_unit: float,
+        quantity: int,
+        price: float,
+        gst_percentage: float = 0,
+        profit: float = 0,
+        profit_type: str = "rupees",
+    ):
         """Create a new product from purchase order product data."""
         payload = {
             "name": name,
@@ -99,8 +110,9 @@ class ProductRepository:
             "purchase_date": datetime.now(tz=timezone.utc),
             "unit": unit_id,
             "rent_per_unit": rent_per_unit,
-            "discount": 0,
-            "discount_type": "rupees",
+            "gst_percentage": gst_percentage,
+            "profit": profit,
+            "profit_type": profit_type,
         }
         result = self.database["products"].insert_one(payload)
         return self.get_product_by_id(product_id=str(result.inserted_id))

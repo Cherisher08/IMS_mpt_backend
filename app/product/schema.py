@@ -14,7 +14,7 @@ class ProductType(str, Enum):
     RENTAL = "rental"
     SERVICE = "service"
     PURCHASE = "purchase"
-    
+
 
 class DiscountType(str, Enum):
     PERCENT = "percent"
@@ -22,7 +22,7 @@ class DiscountType(str, Enum):
 
 
 class ProductDB(AppModel):
-    id: Optional[PyObjectId] = Field(default=None,alias="_id")
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
     name: str
     created_at: datetime
     quantity: int
@@ -35,11 +35,13 @@ class ProductDB(AppModel):
     purchase_date: datetime
     unit: str
     rent_per_unit: float
-    discount: float
-    discount_type: DiscountType
-    
+    profit: float = Field(default=0)
+    profit_type: DiscountType = Field(default=DiscountType.RUPEES)
+    gst_percentage: float = Field(default=0)
+
+
 class ProductResponse(AppModel):
-    id: Optional[PyObjectId] = Field(default=None,alias="_id")
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
     name: str
     created_at: datetime
     quantity: int
@@ -52,5 +54,6 @@ class ProductResponse(AppModel):
     purchase_date: datetime
     unit: Unit
     rent_per_unit: float
-    discount: float
-    discount_type: DiscountType
+    profit: float = Field(default=0)
+    profit_type: DiscountType = Field(default=DiscountType.RUPEES)
+    gst_percentage: float = Field(default=0)

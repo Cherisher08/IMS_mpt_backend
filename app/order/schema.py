@@ -95,10 +95,11 @@ class PurchaseOrderProduct(BaseModel):
     unit: UnitResponse
     type: ProductType
     rent_per_unit: float
+    gst_percentage: float = Field(default=0);
     quantity: float
     price: float
-    discount: float = Field(default=0)
-    discount_type: DiscountType = Field(default=DiscountType.RUPEES)
+    profit: float = Field(default=0)
+    profit_type: DiscountType = Field(default=DiscountType.RUPEES)
 
 
 class DocumentNotification(BaseModel):
