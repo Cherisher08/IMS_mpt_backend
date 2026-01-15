@@ -1,6 +1,5 @@
 from fastapi import HTTPException, status, UploadFile, File, Form
 import re
-import asyncio
 
 from app.contact.utils import handle_upload, sanitize_filename
 from app.contact.contact_repository import ContactRepository
