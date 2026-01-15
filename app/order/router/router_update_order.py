@@ -130,6 +130,7 @@ def update_purchase_order(
     try:
         # Parse products JSON
         products_data = json.loads(products)
+        print('products_data: ', products_data)
         products = [PurchaseOrderProduct(**p) for p in products_data]
     except (json.JSONDecodeError, ValidationError) as e:
         raise HTTPException(

@@ -151,3 +151,64 @@ def send_whatsapp_message_with_img(
     media_response.raise_for_status()
 
     return media_response.json()
+
+
+def send_festive_message(
+    mobile_number: str, customer_name: str, message_title: str, file_id: str
+):
+    """
+    Send a festive wishes message with an image to a customer.
+
+    Args:
+        mobile_number: Customer's phone number with country code
+        customer_name: Personalized customer name for the message
+        message_title: Title/heading of the festive message
+        file_id: WhatsApp media ID of the image to send
+    """
+    if not access_token or not phone_number_id:
+        raise ValueError("Missing WhatsApp configuration in environment variables.")
+
+    media_url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": mobile_number,
+        "type": "template",
+        "template": {
+            "name": "festive_wishes",
+            "language": {"code": "en"},
+            "components": [
+                {
+                    "type": "header",
+                    "parameters": [
+                        {
+                            "type": "image",
+                            "parameter_name": "header_handle",
+                            "image": {
+                                "id": file_id,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    }
+
+    media_response = httpx.post(
+        media_url,
+        headers=headers,
+        json=data,
+        timeout=60,
+    )
+
+    if media_response.status_code != 200:
+        print("Request data: ", data)
+        print("Headers: ", headers)
+        print("URL: ", media_url)
+    media_response.raise_for_status()
+
+    return media_response.json()
