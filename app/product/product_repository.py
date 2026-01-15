@@ -24,8 +24,9 @@ class ProductRepository:
             "purchase_date": product.purchase_date,
             "unit": str(product.unit.id),
             "rent_per_unit": product.rent_per_unit,
-            "discount": product.discount,
-            "discount_type": product.discount_type,
+            "profit": product.profit,
+            "profit_type": product.profit_type,
+            "gst_percentage": product.gst_percentage,
         }
 
         result = self.database["products"].insert_one(payload)
@@ -45,8 +46,9 @@ class ProductRepository:
             "purchase_date": product.purchase_date,
             "unit": str(product.unit.id),
             "rent_per_unit": product.rent_per_unit,
-            "discount": product.discount,
-            "discount_type": product.discount_type,
+            "profit": product.profit,
+            "profit_type": product.profit_type,
+            "gst_percentage": product.gst_percentage,
         }
 
         self.database["products"].update_one(
