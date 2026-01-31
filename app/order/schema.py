@@ -38,9 +38,10 @@ class PaymentStatus(str, Enum):
 
 class PaymentMode(str, Enum):
     NULL = "-"
-    CASH = "cash"
-    UPI = "upi"
-    ACCOUNT = "account"
+    CASH = "Cash"
+    UPI = "HDFC"
+    ACCOUNT = "KVB"
+    INDIAN_BANK = "Indian Bank"
 
 
 class RepaymentMode(str, Enum):
@@ -88,6 +89,7 @@ class ProductDetails(BaseModel):
 
 class PurchaseOrderProduct(BaseModel):
     """Product item for purchase orders with full product details."""
+
     id: Optional[PyObjectId] = Field(default_factory=gen_object_id, alias="_id")
     name: str
     product_code: str
@@ -95,7 +97,7 @@ class PurchaseOrderProduct(BaseModel):
     unit: UnitResponse
     type: ProductType
     rent_per_unit: float
-    gst_percentage: float = Field(default=0);
+    gst_percentage: float = Field(default=0)
     quantity: float
     price: float
     profit: float = Field(default=0)
@@ -178,7 +180,9 @@ class PurchaseOrder(BaseModel):
     supplier: Optional[ContactResponse] = Field(default=None)
     purchase_date: datetime = Field(default_factory=get_current_utc_time)
     products: List[PurchaseOrderProduct]
-    invoice_pdf_path: Optional[str] = Field(default=None, description="Path to invoice PDF file")
+    invoice_pdf_path: Optional[str] = Field(
+        default=None, description="Path to invoice PDF file"
+    )
     invoice_id: Optional[str] = Field(default=None, description="Invoice ID")
 
 
