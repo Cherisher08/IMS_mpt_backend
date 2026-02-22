@@ -130,7 +130,6 @@ def update_purchase_order(
     try:
         # Parse products JSON
         products_data = json.loads(products)
-        print('products_data: ', products_data)
         products = [PurchaseOrderProduct(**p) for p in products_data]
     except (json.JSONDecodeError, ValidationError) as e:
         raise HTTPException(
@@ -189,7 +188,8 @@ def update_purchase_order(
         "supplier": parsed_supplier,
         "purchase_date": purchase_date,
         "invoice_id": invoice_id,
-        "products": [p.model_dump() for p in products],
+        # preserve field aliases (e.g. "_id") so existing product ids are kept
+        "products": [p.model_dump(by_alias=True) for p in products],
         "invoice_pdf_path": invoice_pdf_path,
     }
 
@@ -205,7 +205,7 @@ def update_purchase_order(
         order_data = svc.repository.update_purchase_order(order_id=id, order=payload)
         if not order_data:
             error_message = "The Purchase Order was not updated properly. Please verify and try again"
-            print('error_message: ', error_message)
+            print("error_message: ", error_message)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=error_message
             )

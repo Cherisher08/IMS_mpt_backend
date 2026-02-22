@@ -24,7 +24,7 @@ def get_rental_orders(
 ) -> List[RentalOrder]:
     # Build filters from query parameters
     filters = FilterBuilder.build_filters(filter) if filter else {}
-    
+    print("filters: ", filters)
     # Build sort specification from query parameters
     sort_spec = SortBuilder.build_sort(sort) if sort else None
     

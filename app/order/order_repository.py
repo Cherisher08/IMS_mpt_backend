@@ -32,7 +32,13 @@ class OrderRepository:
         result = self.database["rental_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_rental_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+    def get_rental_orders(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_spec: Optional[list] = None,
+        skip: int = 0,
+        limit: int = 1000,
+    ):
         """Get rental orders with filtering, sorting and pagination. limit=0 means retrieve all."""
         query = filters or {}
         cursor = self.database["rental_orders"].find(query)
@@ -83,7 +89,13 @@ class OrderRepository:
         result = self.database["sales_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_sales_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+    def get_sales_orders(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_spec: Optional[list] = None,
+        skip: int = 0,
+        limit: int = 1000,
+    ):
         """Get sales orders with filtering, sorting and pagination. limit=0 means retrieve all."""
         query = filters or {}
         cursor = self.database["sales_orders"].find(query)
@@ -117,7 +129,13 @@ class OrderRepository:
         result = self.database["service_orders"].delete_one({"_id": ObjectId(order_id)})
         return result.deleted_count
 
-    def get_service_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+    def get_service_orders(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_spec: Optional[list] = None,
+        skip: int = 0,
+        limit: int = 1000,
+    ):
         """Get service orders with filtering, sorting and pagination. limit=0 means retrieve all."""
         query = filters or {}
         cursor = self.database["service_orders"].find(query)
@@ -148,10 +166,18 @@ class OrderRepository:
         return self.database["purchase_orders"].find_one({"_id": ObjectId(order_id)})
 
     def delete_purchase_order_by_id(self, order_id: str):
-        result = self.database["purchase_orders"].delete_one({"_id": ObjectId(order_id)})
+        result = self.database["purchase_orders"].delete_one(
+            {"_id": ObjectId(order_id)}
+        )
         return result.deleted_count
 
-    def get_purchase_orders(self, filters: Optional[Dict[str, Any]] = None, sort_spec: Optional[list] = None, skip: int = 0, limit: int = 1000):
+    def get_purchase_orders(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_spec: Optional[list] = None,
+        skip: int = 0,
+        limit: int = 1000,
+    ):
         """Get purchase orders with filtering, sorting and pagination. limit=0 means retrieve all."""
         query = filters or {}
         cursor = self.database["purchase_orders"].find(query)

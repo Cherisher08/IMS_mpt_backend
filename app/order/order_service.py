@@ -1,6 +1,11 @@
 from app.config import database
 from app.order.order_repository import OrderRepository
 from app.product.product_repository import ProductRepository
+from app.product.schema import ProductResponse
+from app.product_category.product_category_repository import ProductCategoryRepository
+from app.product_category.schema import ProductCategory
+from app.unit.schema import Unit
+from app.unit.unit_repository import UnitRepository
 
 
 class OrderService:
@@ -8,11 +13,17 @@ class OrderService:
         self,
         order_repository: OrderRepository,
         product_repository: ProductRepository = None,
+        product_category_repository=None,
+        unit_repository=None,
     ):
         self.repository = order_repository
         self.product_repository = product_repository or ProductRepository(
             database=database
         )
+        self.product_category_repository = (
+            product_category_repository or ProductCategoryRepository(database=database)
+        )
+        self.unit_repository = unit_repository or UnitRepository(database=database)
 
     def process_purchase_products(self, purchase_products: list):
         """Process products in a purchase order.
@@ -90,18 +101,48 @@ class OrderService:
                     # Product exists, calculate and apply quantity delta
                     old_quantity = old_product_map.get(product_id, 0)
                     quantity_delta = new_quantity - old_quantity
+                    try:
+                        if (
+                            existing_product.get("gst_percentage") is None
+                            or existing_product.get("gst_percentage")
+                            != new_product.gst_percentage
+                        ):
+                            existing_product["gst_percentage"] = float(
+                                new_product.gst_percentage
+                            )
+                            existing_product["category"] = ProductCategory(
+                                **self.product_category_repository.get_product_category_by_id(
+                                    product_category_id=existing_product["category"]
+                                )
+                            )
+                            existing_product["unit"] = Unit(
+                                **self.unit_repository.get_unit_by_id(
+                                    unit_id=existing_product["unit"]
+                                )
+                            )
+                            try:
+                                self.product_repository.update_product(
+                                    product_id=product_id,
+                                    product=ProductResponse(**existing_product),
+                                )
+                            except Exception as e:
+                                print(
+                                    f"Failed to update product GST percentage: {str(e)}"
+                                )
 
-                    if quantity_delta > 0:
-                        # Increase quantity
-                        self.product_repository.increment_product_quantity(
-                            product_id=product_id, quantity=quantity_delta
-                        )
-                    elif quantity_delta < 0:
-                        # Decrease quantity
-                        self.product_repository.increment_product_quantity(
-                            product_id=product_id, quantity=quantity_delta
-                        )
-                    # If delta is 0, no change needed
+                        if quantity_delta > 0:
+                            # Increase quantity
+                            self.product_repository.increment_product_quantity(
+                                product_id=product_id, quantity=quantity_delta
+                            )
+                        elif quantity_delta < 0:
+                            # Decrease quantity
+                            self.product_repository.increment_product_quantity(
+                                product_id=product_id, quantity=quantity_delta
+                            )
+                        # If delta is 0, no change needed
+                    except Exception as e:
+                        print(f"Failed to update product quantity: {str(e)}")
                 else:
                     # Product ID provided but doesn't exist, create it
                     self.product_repository.create_product_from_purchase(
@@ -116,6 +157,7 @@ class OrderService:
                         gst_percentage=float(new_product.gst_percentage),
                         profit=float(new_product.profit),
                         profit_type=new_product.profit_type.value,
+                        product_id=product_id,
                     )
             else:
                 # New product, create it
@@ -131,6 +173,7 @@ class OrderService:
                     gst_percentage=float(new_product.gst_percentage),
                     profit=float(new_product.profit),
                     profit_type=new_product.profit_type.value,
+                    product_id=str(new_product.id) if new_product.id else None,
                 )
 
 

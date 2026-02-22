@@ -97,9 +97,11 @@ class ProductRepository:
         gst_percentage: float = 0,
         profit: float = 0,
         profit_type: str = "rupees",
+        product_id: str = None,
     ):
         """Create a new product from purchase order product data."""
         payload = {
+            "_id": ObjectId(product_id) if product_id else None,
             "name": name,
             "created_at": datetime.now(tz=timezone.utc),
             "quantity": quantity,

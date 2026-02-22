@@ -167,7 +167,7 @@ def create_purchase_order(
         "supplier": parsed_supplier,
         "purchase_date": purchase_date,
         "invoice_id": invoice_id,
-        "products": [p.model_dump() for p in products],
+        "products": [p.model_dump(by_alias=True) for p in products],
         "invoice_pdf_path": invoice_pdf_path,
     }
 

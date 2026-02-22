@@ -140,15 +140,75 @@ class FilterBuilder:
     def build_filters(filter_params: Optional[list] = None) -> Dict[str, Any]:
         """
         Build combined MongoDB filter query from list of filter parameters.
+        Supports multiple filters (AND logic by default).
+        Handles multiple conditions on same field (e.g., out_date:gte:... and out_date:lte:...)
+        Special handling for filters starting with 'or:' which are combined with $or logic.
+        
+        Examples:
+            - ["status:pending", "amount:gte:100"] -> AND logic
+            - ["out_date:gte:2025-01-01,out_date:lte:2025-01-31"] -> merges into single field
+            - ["or:balance_paid_date:gte:2025-01-01", "or:repay_date:gte:2025-01-01"] -> OR logic
+            - ["or:balance_paid_date:gte:2025-01-01", "or:balance_paid_date:lte:2025-01-31"] -> combines same field
         """
         if not filter_params:
             return {}
 
         filters = {}
+        or_filters = []
+        
         for filter_param in filter_params:
-            parsed_filter = FilterBuilder.parse_filter_param(filter_param)
-            if parsed_filter:
-                filters.update(parsed_filter)
+            # Handle comma-separated multiple conditions on same field
+            # e.g., "out_date:gte:2025-01-01,out_date:lte:2025-01-31" or "or:balance_paid_date:gte:...,or:balance_paid_date:lte:..."
+            if "," in filter_param and ":" in filter_param:
+                # Split by comma to get individual conditions
+                conditions = filter_param.split(",")
+                for condition in conditions:
+                    # Check if condition should use OR logic
+                    if condition.startswith("or:"):
+                        parsed_filter = FilterBuilder.parse_filter_param(condition[3:])
+                        if parsed_filter:
+                            # Merge conditions for same field in or_filters
+                            field = list(parsed_filter.keys())[0]
+                            existing_idx = next((i for i, f in enumerate(or_filters) if field in f), None)
+                            if existing_idx is not None:
+                                # Merge with existing field filter
+                                or_filters[existing_idx][field].update(parsed_filter[field])
+                            else:
+                                or_filters.append(parsed_filter)
+                    else:
+                        parsed_filter = FilterBuilder.parse_filter_param(condition)
+                        if parsed_filter:
+                            # Merge conditions for same field
+                            for field, value in parsed_filter.items():
+                                if field in filters:
+                                    # If field already exists, merge the operators
+                                    if isinstance(filters[field], dict) and isinstance(value, dict):
+                                        filters[field].update(value)
+                                    else:
+                                        filters[field] = value
+                                else:
+                                    filters[field] = value
+            else:
+                # Check if filter should use OR logic
+                if filter_param.startswith("or:"):
+                    parsed_filter = FilterBuilder.parse_filter_param(filter_param[3:])
+                    if parsed_filter:
+                        # Merge conditions for same field in or_filters
+                        field = list(parsed_filter.keys())[0]
+                        existing_idx = next((i for i, f in enumerate(or_filters) if field in f), None)
+                        if existing_idx is not None:
+                            # Merge with existing field filter
+                            or_filters[existing_idx][field].update(parsed_filter[field])
+                        else:
+                            or_filters.append(parsed_filter)
+                else:
+                    parsed_filter = FilterBuilder.parse_filter_param(filter_param)
+                    if parsed_filter:
+                        filters.update(parsed_filter)
+        
+        # If there are OR filters, add them to the query
+        if or_filters:
+            filters["$or"] = or_filters
 
         return filters
 
