@@ -10,7 +10,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename by replacing invalid characters with underscores.
     
-    Removes/replaces: /, \, :, *, ?, ", <, >, |
     """
     # Replace invalid filename characters with underscore
     invalid_chars = r'[/\\:*?"<>|]'
