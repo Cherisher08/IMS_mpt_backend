@@ -1,5 +1,8 @@
+from datetime import datetime, timezone
+
 from app.config import database
 from app.order.order_repository import OrderRepository
+from app.order.schema import RentalOrder
 from app.product.product_repository import ProductRepository
 from app.product.schema import ProductResponse
 from app.product_category.product_category_repository import ProductCategoryRepository
@@ -175,6 +178,111 @@ class OrderService:
                     profit_type=new_product.profit_type.value,
                     product_id=str(new_product.id) if new_product.id else None,
                 )
+
+    def create_rental_order_with_invoice(self, order: RentalOrder):
+        """Create rental order with automatic invoice ID generation for PAID status."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Auto-generate invoice ID if status is PAID and no invoice ID is set
+        if order.status == PaymentStatus.PAID and not order.invoice_id:
+            order.invoice_id = generate_invoice_id(self.repository.database)
+            order.invoice_date = datetime.now(timezone.utc)
+
+        # Proceed with normal order creation
+        return self.repository.create_rental_order(order)
+
+    def update_rental_order_with_invoice(self, order_id: str, order: RentalOrder):
+        """Update rental order with automatic invoice ID generation when status changes to PAID."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Get existing order to check status change
+        existing_order = self.repository.get_rental_order_by_id(order_id)
+        if existing_order:
+            old_status = existing_order.get("status")
+            # Auto-generate invoice ID if status changed to PAID and no invoice ID exists
+            if (
+                order.status == PaymentStatus.PAID
+                and old_status != PaymentStatus.PAID
+                and not order.invoice_id
+                and not existing_order.get("invoice_id", "")
+            ):
+                order.invoice_id = generate_invoice_id(self.repository.database)
+                order.invoice_date = datetime.now(timezone.utc)
+
+        # Proceed with normal order update
+        return self.repository.update_rental_order(order_id=order_id, order=order)
+
+    def create_sales_order_with_invoice(self, order):
+        """Create sales order with automatic invoice ID generation for PAID status."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Auto-generate invoice ID if status is PAID and no invoice ID is set
+        if order.get("status") == PaymentStatus.PAID and not order.get("invoice_id"):
+            order["invoice_id"] = generate_invoice_id(self.repository.database)
+            order["invoice_date"] = datetime.now(timezone.utc)
+
+        # Proceed with normal order creation
+        return self.repository.create_sales_order(order)
+
+    def update_sales_order_with_invoice(self, order_id: str, order):
+        """Update sales order with automatic invoice ID generation when status changes to PAID."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Get existing order to check status change
+        existing_order = self.repository.get_sales_order_by_id(order_id)
+        if existing_order:
+            old_status = existing_order.get("status")
+            # Auto-generate invoice ID if status changed to PAID and no invoice ID exists
+            if (
+                order.get("status") == PaymentStatus.PAID
+                and old_status != PaymentStatus.PAID
+                and not order.get("invoice_id")
+                and not existing_order.get("invoice_id")
+            ):
+                order["invoice_id"] = generate_invoice_id(self.repository.database)
+                order["invoice_date"] = datetime.now(timezone.utc)
+
+        # Proceed with normal order update
+        return self.repository.update_sales_order(order_id=order_id, order=order)
+
+    def create_service_order_with_invoice(self, order):
+        """Create service order with automatic invoice ID generation for PAID status."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Auto-generate invoice ID if status is PAID and no invoice ID is set
+        if order.get("status") == PaymentStatus.PAID and not order.get("invoice_id"):
+            order["invoice_id"] = generate_invoice_id(self.repository.database)
+            order["invoice_date"] = datetime.now(timezone.utc)
+
+        # Proceed with normal order creation
+        return self.repository.create_service_order(order)
+
+    def update_service_order_with_invoice(self, order_id: str, order):
+        """Update service order with automatic invoice ID generation when status changes to PAID."""
+        from app.order.utils import generate_invoice_id
+        from app.order.schema import PaymentStatus
+
+        # Get existing order to check status change
+        existing_order = self.repository.get_service_order_by_id(order_id)
+        if existing_order:
+            old_status = existing_order.get("status")
+            # Auto-generate invoice ID if status changed to PAID and no invoice ID exists
+            if (
+                order.get("status") == PaymentStatus.PAID
+                and old_status != PaymentStatus.PAID
+                and not order.get("invoice_id")
+                and not existing_order.get("invoice_id")
+            ):
+                order["invoice_id"] = generate_invoice_id(self.repository.database)
+                order["invoice_date"] = datetime.now(timezone.utc)
+
+        # Proceed with normal order update
+        return self.repository.update_service_order(order_id=order_id, order=order)
 
 
 def get_order_service():

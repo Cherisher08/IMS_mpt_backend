@@ -32,7 +32,7 @@ def update_rental_order(
     payload: RentalOrder,
     svc: OrderService = Depends(get_order_service),
 ) -> RentalOrder:
-    order_data = svc.repository.update_rental_order(order_id=id, order=payload)
+    order_data = svc.update_rental_order_with_invoice(order_id=id, order=payload)
     if not order_data:
         error_message = (
             "The Rental Order was not updated properly. Please verify and try again"
@@ -65,7 +65,7 @@ def update_sales_order(
     payload: SalesOrder,
     svc: OrderService = Depends(get_order_service),
 ) -> SalesOrder:
-    order_data = svc.repository.update_sales_order(order_id=id, order=payload)
+    order_data = svc.update_sales_order_with_invoice(order_id=id, order=payload)
     if not order_data:
         error_message = (
             "The Sales Order was not updated properly. Please verify and try again"
@@ -94,7 +94,7 @@ def update_service_order(
     payload: ServiceOrder,
     svc: OrderService = Depends(get_order_service),
 ) -> ServiceOrder:
-    order_data = svc.repository.update_service_order(order_id=id, order=payload)
+    order_data = svc.update_service_order_with_invoice(order_id=id, order=payload)
     if not order_data:
         error_message = (
             "The Service Order was not updated properly. Please verify and try again"

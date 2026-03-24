@@ -4,6 +4,8 @@ from app.contact.utils import UPLOAD_DIR
 from app.order.schema import PatchOperation
 from app.dependencies import env
 import httpx
+from pymongo.database import Database
+from datetime import datetime
 
 access_token = env.access_token
 phone_number_id = env.phone_number_id
@@ -212,3 +214,70 @@ def send_festive_message(
     media_response.raise_for_status()
 
     return media_response.json()
+
+
+def generate_invoice_id(db: Database) -> str:
+    """
+    Generate the next invoice ID based on existing invoices.
+
+    Format: INV/{year}/{next_number}
+    where year is the financial year starting year (April-based cycle)
+    and next_number is 4-digit padded increment.
+
+    Args:
+        db: MongoDB database instance
+
+    Returns:
+        Next invoice ID as string
+    """
+    # Get current date
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    # Calculate financial year starting year (April to March)
+    # If month < 4 (April), financial year starts in previous year
+    financial_year = current_year - 1 if current_month < 4 else current_year
+
+    # Query for existing invoices in the rental_orders collection
+    # Look for invoice_ids that start with "INV/"
+    collection = db["rental_orders"]
+    orders_with_invoices = collection.find(
+        {"invoice_id": {"$regex": "^INV/"}},
+        {"invoice_id": 1, "_id": 0}
+    )
+
+    # Extract invoice numbers and find the latest
+    max_invoice_num = 0
+    latest_year = financial_year
+
+    for order in orders_with_invoices:
+        invoice_id = order.get("invoice_id")
+        if not invoice_id:
+            continue
+
+        # Parse invoice_id format: INV/2024/0001
+        parts = invoice_id.split("/")
+        if len(parts) != 3:
+            continue
+
+        try:
+            year = int(parts[1])
+            invoice_num = int(parts[2])
+
+            # Track the highest invoice number found
+            if invoice_num > max_invoice_num:
+                max_invoice_num = invoice_num
+                latest_year = year
+        except (ValueError, IndexError):
+            # Skip invalid invoice IDs
+            continue
+
+    # Generate next invoice number
+    next_invoice_num = max_invoice_num + 1
+
+    # Use the latest year found, or current financial year if no invoices exist
+    result_year = latest_year if max_invoice_num > 0 else financial_year
+
+    # Format and return
+    return f"INV/{result_year}/{next_invoice_num:04d}"

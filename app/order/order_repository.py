@@ -66,6 +66,10 @@ class OrderRepository:
             },
         )
 
+    def get_orders_with_invoice_ids(self, order_type: str = "rental") -> list:
+        """Get all orders that have invoice IDs (for invoice generation)."""
+        collection = self.database[f"{order_type}_orders"]
+        return list(collection.find({"invoice_id": {"$exists": True, "$ne": None}}))
     # ----------------------------
     # SALES ORDERS
     # ----------------------------
