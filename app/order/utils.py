@@ -243,8 +243,7 @@ def generate_invoice_id(db: Database) -> str:
     # Look for invoice_ids that start with "INV/"
     collection = db["rental_orders"]
     orders_with_invoices = collection.find(
-        {"invoice_id": {"$regex": "^INV/"}},
-        {"invoice_id": 1, "_id": 0}
+        {"invoice_id": {"$regex": "^INV/"}}, {"invoice_id": 1, "_id": 0}
     )
 
     # Extract invoice numbers and find the latest
