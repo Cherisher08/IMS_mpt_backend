@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Any, List, Literal, Optional
 from enum import Enum
 
-from app.auth.schema import PyObjectId
+from app.auth.schema import PyObjectId, Branch
 from app.contact.schema import ContactResponse
 from app.product.schema import DiscountType, ProductResponse, ProductType
 from app.product_category.schema import ProductCategory
@@ -124,7 +124,7 @@ class Deposit(BaseModel):
 
 class Order(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
-    order_id: str
+    order_id: str = Field(default="")
     customer: Optional[ContactResponse] = Field(
         default=None,
     )
@@ -137,6 +137,7 @@ class Order(BaseModel):
     payment_mode: RepaymentMode = Field(default=RepaymentMode.NULL)
     created_at: datetime = Field(default_factory=get_current_utc_time)
     gst: float
+    branch: Branch = Field(default=Branch.PADUR)
 
 
 class RentalOrder(Order):

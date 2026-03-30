@@ -181,12 +181,18 @@ class OrderService:
 
     def create_rental_order_with_invoice(self, order: RentalOrder):
         """Create rental order with automatic invoice ID generation for PAID status."""
-        from app.order.utils import generate_invoice_id
+        from app.order.utils import generate_invoice_id, generate_order_id
         from app.order.schema import PaymentStatus
+
+        # Auto-generate order ID if it's empty or None
+        if not order.order_id or order.order_id == "":
+            order.order_id = generate_order_id(self.repository.database, order.branch)
 
         # Auto-generate invoice ID if status is PAID and no invoice ID is set
         if order.status == PaymentStatus.PAID and not order.invoice_id:
-            order.invoice_id = generate_invoice_id(self.repository.database)
+            order.invoice_id = generate_invoice_id(
+                self.repository.database, order.branch, order.billing_mode
+            )
             order.invoice_date = datetime.now(timezone.utc)
 
         # Proceed with normal order creation
@@ -208,7 +214,9 @@ class OrderService:
                 and not order.invoice_id
                 and not existing_order.get("invoice_id", "")
             ):
-                order.invoice_id = generate_invoice_id(self.repository.database)
+                order.invoice_id = generate_invoice_id(
+                    self.repository.database, order.branch, order.billing_mode
+                )
                 order.invoice_date = datetime.now(timezone.utc)
 
         # Proceed with normal order update
@@ -221,7 +229,12 @@ class OrderService:
 
         # Auto-generate invoice ID if status is PAID and no invoice ID is set
         if order.get("status") == PaymentStatus.PAID and not order.get("invoice_id"):
-            order["invoice_id"] = generate_invoice_id(self.repository.database)
+            # Extract branch and billing_mode from order
+            order_branch = order.get("branch")
+            order_billing_mode = order.get("billing_mode")
+            order["invoice_id"] = generate_invoice_id(
+                self.repository.database, order_branch, order_billing_mode
+            )
             order["invoice_date"] = datetime.now(timezone.utc)
 
         # Proceed with normal order creation
@@ -243,7 +256,12 @@ class OrderService:
                 and not order.get("invoice_id")
                 and not existing_order.get("invoice_id")
             ):
-                order["invoice_id"] = generate_invoice_id(self.repository.database)
+                # Extract branch and billing_mode from order
+                order_branch = order.get("branch")
+                order_billing_mode = order.get("billing_mode")
+                order["invoice_id"] = generate_invoice_id(
+                    self.repository.database, order_branch, order_billing_mode
+                )
                 order["invoice_date"] = datetime.now(timezone.utc)
 
         # Proceed with normal order update
@@ -256,7 +274,12 @@ class OrderService:
 
         # Auto-generate invoice ID if status is PAID and no invoice ID is set
         if order.get("status") == PaymentStatus.PAID and not order.get("invoice_id"):
-            order["invoice_id"] = generate_invoice_id(self.repository.database)
+            # Extract branch and billing_mode from order
+            order_branch = order.get("branch")
+            order_billing_mode = order.get("billing_mode")
+            order["invoice_id"] = generate_invoice_id(
+                self.repository.database, order_branch, order_billing_mode
+            )
             order["invoice_date"] = datetime.now(timezone.utc)
 
         # Proceed with normal order creation
@@ -278,7 +301,12 @@ class OrderService:
                 and not order.get("invoice_id")
                 and not existing_order.get("invoice_id")
             ):
-                order["invoice_id"] = generate_invoice_id(self.repository.database)
+                # Extract branch and billing_mode from order
+                order_branch = order.get("branch")
+                order_billing_mode = order.get("billing_mode")
+                order["invoice_id"] = generate_invoice_id(
+                    self.repository.database, order_branch, order_billing_mode
+                )
                 order["invoice_date"] = datetime.now(timezone.utc)
 
         # Proceed with normal order update

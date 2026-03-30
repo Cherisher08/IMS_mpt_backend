@@ -1,9 +1,11 @@
 import os
 from fastapi import HTTPException
 from app.contact.utils import UPLOAD_DIR
-from app.order.schema import PatchOperation
+from app.order.schema import PatchOperation, BillingMode
 from app.dependencies import env
+from app.auth.schema import Branch
 import httpx
+import re
 from pymongo.database import Database
 from datetime import datetime
 
@@ -216,19 +218,36 @@ def send_festive_message(
     return media_response.json()
 
 
-def generate_invoice_id(db: Database) -> str:
+def generate_invoice_id(
+    db: Database, branch: Branch = Branch.PADUR, billing_mode: BillingMode = BillingMode.B2B
+) -> str:
     """
     Generate the next invoice ID based on existing invoices.
 
-    Format: INV/{year}/{next_number}
-    where year is the financial year starting year (April-based cycle)
+    Format: INV/{type_code}-{branch_code}/{fy}/{next_number}
+    where type_code is the billing mode (B2B or B2C)
+    branch_code is the branch code (e.g., PADUR-1, KLMBK-1, PUDPK-1)
+    fy is the fiscal year starting year (April-based cycle)
     and next_number is 4-digit padded increment.
+
+    Fiscal year runs from April to March:
+    - If month < 4 (April), fiscal year is previous year to current year
+    - If month >= 4 (April), fiscal year is current year to next year
+
+    Branch and type-based numbering:
+    - Each branch + billing type combination has its own sequential numbering
+    - B2B and B2C invoices maintain separate counters (both start from 0001)
+    - New format (with type and branch) applies to invoices created on or after April 1, 2026
+    - Old format (without type/branch) applies to invoices created before April 1, 2026
+    - Backward compatibility: Old invoices are not counted in new numbering
 
     Args:
         db: MongoDB database instance
+        branch: Branch enum value (default: PADUR)
+        billing_mode: BillingMode enum value (B2B or B2C, default: B2B)
 
     Returns:
-        Next invoice ID as string
+        Next invoice ID as string in format: INV/B2B-PADUR-1/2025/0001
     """
     # Get current date
     now = datetime.now()
@@ -239,12 +258,39 @@ def generate_invoice_id(db: Database) -> str:
     # If month < 4 (April), financial year starts in previous year
     financial_year = current_year - 1 if current_month < 4 else current_year
 
+    # Check if we should use the new format (with branch)
+    # New format starts from April 1, 2026
+    new_format_start_date = datetime(2026, 4, 1)
+    use_new_format = now >= new_format_start_date
+
+    # Extract branch code from branch enum value
+    # Branch values are like "PADUR-1", "KLMBK-1", "PUDPK-1"
+    branch_code = branch.value
+    
+    # Extract billing mode code from enum
+    # BillingMode values are "B2B" or "B2C"
+    type_code = billing_mode.value
+
     # Query for existing invoices in the rental_orders collection
-    # Look for invoice_ids that start with "INV/"
     collection = db["rental_orders"]
-    orders_with_invoices = collection.find(
-        {"invoice_id": {"$regex": "^INV/"}}, {"invoice_id": 1, "_id": 0}
-    )
+
+    if use_new_format:
+        # New format with type: Query invoices for specific branch and billing mode
+        # Format: INV/{type_code}-{branch_code}/ (e.g., INV/B2B-PADUR-1/)
+        # This ensures B2B and B2C maintain separate numbering
+        orders_with_invoices = collection.find(
+            {
+                "invoice_id": {"$regex": f"^INV/{type_code}-{branch_code}/"},
+                "billing_mode": billing_mode.value,
+            },
+            {"invoice_id": 1, "_id": 0},
+        )
+    else:
+        # Old format: Query all invoice_ids that start with "INV/"
+        # Old invoices don't have type, so we don't filter by billing_mode
+        orders_with_invoices = collection.find(
+            {"invoice_id": {"$regex": "^INV/"}}, {"invoice_id": 1, "_id": 0}
+        )
 
     # Extract invoice numbers and find the latest
     max_invoice_num = 0
@@ -255,22 +301,52 @@ def generate_invoice_id(db: Database) -> str:
         if not invoice_id:
             continue
 
-        # Parse invoice_id format: INV/2024/0001
-        parts = invoice_id.split("/")
-        if len(parts) != 3:
-            continue
+        if use_new_format:
+            # Parse invoice_id format: INV/B2B-PADUR-1/2025/0001 or INV/PADUR-1/2024/0001 (transition)
+            parts = invoice_id.split("/")
+            
+            # New format with type: 5 parts [INV, B2B-PADUR-1, 2025, 0001]
+            # Transition format without type: 4 parts [INV, PADUR-1, 2024, 0001]
+            if len(parts) == 5:
+                # New format with type
+                try:
+                    type_branch_code = parts[1]  # e.g., "B2B-PADUR-1"
+                    year = int(parts[2])
+                    invoice_num = int(parts[3])
 
-        try:
-            year = int(parts[1])
-            invoice_num = int(parts[2])
+                    # Parse the type and branch from combined code
+                    # Format: {type}-{branch}, e.g., "B2B-PADUR-1"
+                    type_branch_parts = type_branch_code.split("-", 1)
+                    if len(type_branch_parts) == 2:
+                        invoice_type, invoice_branch_code = type_branch_parts
+                        # Only consider invoices matching both type and branch
+                        if invoice_type == type_code and invoice_branch_code == branch_code:
+                            if invoice_num > max_invoice_num:
+                                max_invoice_num = invoice_num
+                                latest_year = year
+                except (ValueError, IndexError):
+                    continue
+            elif len(parts) == 4:
+                # Transition format without type (INV/PADUR-1/2024/0001)
+                # Skip these for backward compatibility - don't count toward new numbering
+                continue
+        else:
+            # Old format: Parse invoice_id format: INV/2024/0001
+            parts = invoice_id.split("/")
+            if len(parts) != 3:
+                continue
 
-            # Track the highest invoice number found
-            if invoice_num > max_invoice_num:
-                max_invoice_num = invoice_num
-                latest_year = year
-        except (ValueError, IndexError):
-            # Skip invalid invoice IDs
-            continue
+            try:
+                year = int(parts[1])
+                invoice_num = int(parts[2])
+
+                # Track the highest invoice number found
+                if invoice_num > max_invoice_num:
+                    max_invoice_num = invoice_num
+                    latest_year = year
+            except (ValueError, IndexError):
+                # Skip invalid invoice IDs
+                continue
 
     # Generate next invoice number
     next_invoice_num = max_invoice_num + 1
@@ -278,5 +354,156 @@ def generate_invoice_id(db: Database) -> str:
     # Use the latest year found, or current financial year if no invoices exist
     result_year = latest_year if max_invoice_num > 0 else financial_year
 
+    # Format and return with type code
+    if use_new_format:
+        return f"INV/{type_code}-{branch_code}/{result_year}/{next_invoice_num:04d}"
+    else:
+        return f"INV/{result_year}/{next_invoice_num:04d}"
+
+
+def generate_order_id(db: Database, branch: Branch = Branch.PADUR) -> str:
+    """
+    Generate the next order ID based on existing rental orders.
+
+    Format: RO/{branch_code}/{fy}/{next_number}
+    where branch_code is the branch code (e.g., PADUR-1, KLMBK-1, PUDPK-1)
+    fy is the fiscal year in format YY-YY (e.g., 25-26)
+    and next_number is 4-digit padded increment.
+
+    Fiscal year runs from April to March:
+    - If month < 4 (April), fiscal year is previous year to current year
+    - If month >= 4 (April), fiscal year is current year to next year
+
+    Branch-based numbering:
+    - Each branch has its own sequential numbering
+    - New format (with branch) applies to orders created on or after April 1, 2026
+    - Old format (without branch) applies to orders created before April 1, 2026
+    
+    Note: Order IDs may have suffixes like /A or trailing characters. The numeric
+    part is extracted for comparison to find the latest order ID accurately.
+
+    Args:
+        db: MongoDB database instance
+        branch: Branch enum value (default: PADUR)
+
+    Returns:
+        Next order ID as string
+    """
+    # Get current date
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    # Calculate fiscal year (April to March cycle)
+    # If month < 4 (April), fiscal year is previous year to current year
+    # If month >= 4 (April), fiscal year is current year to next year
+    start_year = current_year - 1 if current_month < 4 else current_year
+    end_year = start_year + 1
+    fy = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+
+    # Check if we should use the new format (with branch)
+    # New format starts from April 1, 2026
+    new_format_start_date = datetime(2026, 4, 1)
+    use_new_format = now >= new_format_start_date
+
+    # Extract branch code from branch enum value
+    # Branch values are like "PADUR-1", "KLMBK-1", "PUDPK-1"
+    branch_code = branch.value
+
+    # Query for existing order IDs in the rental_orders collection
+    collection = db["rental_orders"]
+
+    if use_new_format:
+        # New format: Query only orders for the specific branch
+        # Look for order_ids that start with "RO/{branch_code}/"
+        orders_with_ids = collection.find(
+            {"order_id": {"$regex": f"^RO/{branch_code}/"}}, {"order_id": 1, "_id": 0}
+        )
+    else:
+        # Old format: Query all order_ids that start with "RO/"
+        orders_with_ids = collection.find(
+            {"order_id": {"$regex": "^RO/"}}, {"order_id": 1, "_id": 0}
+        )
+
+    # Extract order numbers and find the latest
+    max_order_num = 0
+    latest_fy = fy
+
+    for order in orders_with_ids:
+        order_id = order.get("order_id")
+        if not order_id:
+            continue
+
+        if use_new_format:
+            # Parse order_id format: RO/PADUR-1/25-26/0001 or with suffixes like RO/PADUR-1/25-26/0001/A
+            parts = order_id.split("/")
+            if len(parts) < 4:
+                continue
+
+            try:
+                order_branch_code = parts[1]
+                order_fy = parts[2]
+                # Extract numeric part from the order number (handles suffixes like /A)
+                order_num_str = parts[3]
+                
+                # If there are more parts (e.g., 0001/A), join the remaining parts
+                if len(parts) > 4:
+                    order_num_str = "/".join(parts[3:])
+                
+                # Extract only the leading numeric digits
+                numeric_match = re.match(r"^(\d+)", order_num_str)
+                if not numeric_match:
+                    continue
+                
+                order_num = int(numeric_match.group(1))
+
+                # Only consider orders for the same branch
+                if order_branch_code == branch_code:
+                    # Track the highest order number found
+                    if order_num > max_order_num:
+                        max_order_num = order_num
+                        latest_fy = order_fy
+            except (ValueError, IndexError, AttributeError):
+                # Skip invalid order IDs
+                continue
+        else:
+            # Old format: Parse order_id format: RO/25-26/0001 or with suffixes like RO/25-26/0001/A
+            parts = order_id.split("/")
+            if len(parts) < 3:
+                continue
+
+            try:
+                order_fy = parts[1]
+                # Extract numeric part from the order number (handles suffixes like /A)
+                order_num_str = parts[2]
+                
+                # If there are more parts (e.g., 0001/A), join the remaining parts
+                if len(parts) > 3:
+                    order_num_str = "/".join(parts[2:])
+                
+                # Extract only the leading numeric digits
+                numeric_match = re.match(r"^(\d+)", order_num_str)
+                if not numeric_match:
+                    continue
+                
+                order_num = int(numeric_match.group(1))
+
+                # Track the highest order number found
+                if order_num > max_order_num:
+                    max_order_num = order_num
+                    latest_fy = order_fy
+            except (ValueError, IndexError, AttributeError):
+                # Skip invalid order IDs
+                continue
+
+    # Generate next order number
+    next_order_num = max_order_num + 1
+
+    # Use the latest fiscal year found, or current fiscal year if no orders exist
+    result_fy = latest_fy if max_order_num > 0 else fy
+
     # Format and return
-    return f"INV/{result_year}/{next_invoice_num:04d}"
+    if use_new_format:
+        return f"RO/{branch_code}/{result_fy}/{next_order_num:04d}"
+    else:
+        return f"RO/{result_fy}/{next_order_num:04d}"

@@ -44,11 +44,18 @@ class Role(str, Enum):
     USER = "user"
 
 
+class Branch(str, Enum):
+    PADUR = "PADUR-1"
+    KELAMBAKKAM = "KLMBK-1"
+    PUDUPAKKAM = "PUDPK-1"
+
+
 class RegisterUserRequest(AppModel):
     email: str
     password: str
     name: str
     role: Role = Field(default="user")
+    branch: Branch = Field(default=Branch.PADUR)
 
 
 class RegisterUserResponse(AppModel):
@@ -57,6 +64,7 @@ class RegisterUserResponse(AppModel):
     password: str
     name: str
     role: Role
+    branch: Branch
     
 class AuthorizeUserRequest(AppModel):
     email: str

@@ -23,6 +23,7 @@ class AuthRepository:
             "password": hash_password(user.password),
             "name": user.name,
             "role": user.role.value,
+            "branch": user.branch.value,
             "created_at": datetime.now(tz=timezone.utc),
         }
 
