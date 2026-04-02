@@ -1,6 +1,5 @@
 from fastapi.params import Depends, Query
 
-from app.config import database
 from app.order.order_service import OrderService, get_order_service
 from app.order.utils import generate_invoice_id, generate_order_id
 from app.auth.schema import Branch

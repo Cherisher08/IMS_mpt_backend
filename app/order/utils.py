@@ -305,9 +305,9 @@ def generate_invoice_id(
             # Parse invoice_id format: INV/B2B-PADUR-1/2025/0001 or INV/PADUR-1/2024/0001 (transition)
             parts = invoice_id.split("/")
             
-            # New format with type: 5 parts [INV, B2B-PADUR-1, 2025, 0001]
+            # New format with type: 4 parts [INV, B2B-PADUR-1, 2025, 0001]
             # Transition format without type: 4 parts [INV, PADUR-1, 2024, 0001]
-            if len(parts) == 5:
+            if len(parts) == 4:
                 # New format with type
                 try:
                     type_branch_code = parts[1]  # e.g., "B2B-PADUR-1"
@@ -326,10 +326,6 @@ def generate_invoice_id(
                                 latest_year = year
                 except (ValueError, IndexError):
                     continue
-            elif len(parts) == 4:
-                # Transition format without type (INV/PADUR-1/2024/0001)
-                # Skip these for backward compatibility - don't count toward new numbering
-                continue
         else:
             # Old format: Parse invoice_id format: INV/2024/0001
             parts = invoice_id.split("/")
@@ -507,3 +503,48 @@ def generate_order_id(db: Database, branch: Branch = Branch.PADUR) -> str:
         return f"RO/{branch_code}/{result_fy}/{next_order_num:04d}"
     else:
         return f"RO/{result_fy}/{next_order_num:04d}"
+
+
+def calculate_final_amount(order: dict) -> float:
+    """
+    Calculate the final amount for a rental order.
+    Mirrors the frontend calculateFinalAmount function.
+
+    Formula:
+    final_amount = (total_amount - discount + gst + round_off + eway_amount + damage_expenses) - balance_paid
+    """
+    # Calculate total amount from product details
+    total_amount = 0.0
+    for product in order.get("product_details", []):
+        quantity = product.get("order_quantity", 0)
+        duration = product.get("duration", 0)
+        rent_per_unit = product.get("rent_per_unit", 0)
+        total_amount += quantity * duration * rent_per_unit
+
+    # Get other components
+    discount = order.get("discount", 0)
+    discount_type = order.get("discount_type", "RUPEES")
+    gst_percentage = order.get("gst", 18) if order.get("gst") else 18
+    round_off = order.get("round_off", 0)
+    eway_amount = order.get("eway_amount", 0)
+    damage_expenses = order.get("damage_expenses", 0)
+    balance_paid = order.get("balance_paid", 0)
+    billing_mode = order.get("billing_mode", "B2C")
+
+    # Calculate discount amount
+    if discount_type == "PERCENT":
+        discount_amount = (total_amount * discount) / 100
+    else:
+        discount_amount = discount
+
+    # Calculate GST (only for B2B)
+    if billing_mode == "B2B":
+        transport_for_tax = eway_amount
+        gst_amount = ((total_amount + transport_for_tax - discount_amount) * gst_percentage) / 100
+    else:
+        gst_amount = 0
+
+    # Calculate final amount
+    final_amount = (total_amount - discount_amount + gst_amount + round_off + eway_amount + damage_expenses) - balance_paid
+
+    return round(final_amount, 2)
