@@ -199,25 +199,40 @@ class OrderService:
         return self.repository.create_rental_order(order)
 
     def update_rental_order_with_invoice(self, order_id: str, order: RentalOrder):
-        """Update rental order with automatic invoice ID generation when status changes to PAID."""
+        """Update rental order with automatic invoice ID generation when status changes to PAID 
+        or when in_date is set with PAID status (indicating items returned and payment complete)."""
         from app.order.utils import generate_invoice_id
         from app.order.schema import PaymentStatus
 
-        # Get existing order to check status change
+        # Get existing order to check status change and in_date change
         existing_order = self.repository.get_rental_order_by_id(order_id)
         if existing_order:
             old_status = existing_order.get("status")
-            # Auto-generate invoice ID if status changed to PAID and no invoice ID exists
-            if (
-                order.status == PaymentStatus.PAID
-                and old_status != PaymentStatus.PAID
-                and not order.invoice_id
-                and not existing_order.get("invoice_id", "")
-            ):
-                order.invoice_id = generate_invoice_id(
-                    self.repository.database, order.branch, order.billing_mode
-                )
-                order.invoice_date = datetime.now(timezone.utc)
+            old_in_date = existing_order.get("in_date")
+            
+            # Auto-generate invoice ID in two scenarios:
+            # 1. Status changed to PAID
+            # 2. in_date is now set (items returned) and status is PAID (payment complete)
+            if not order.invoice_id and not existing_order.get("invoice_id", ""):
+                # Case 1: Status changed to PAID
+                if (
+                    order.status == PaymentStatus.PAID
+                    and old_status != PaymentStatus.PAID
+                ):
+                    order.invoice_id = generate_invoice_id(
+                        self.repository.database, order.branch, order.billing_mode
+                    )
+                    order.invoice_date = datetime.now(timezone.utc)
+                # Case 2: in_date is now set (items returned) and status is PAID (payment complete)
+                elif (
+                    order.status == PaymentStatus.PAID
+                    and order.in_date
+                    and not old_in_date
+                ):
+                    order.invoice_id = generate_invoice_id(
+                        self.repository.database, order.branch, order.billing_mode
+                    )
+                    order.invoice_date = datetime.now(timezone.utc)
 
         # Proceed with normal order update
         return self.repository.update_rental_order(order_id=order_id, order=order)
@@ -286,28 +301,46 @@ class OrderService:
         return self.repository.create_service_order(order)
 
     def update_service_order_with_invoice(self, order_id: str, order):
-        """Update service order with automatic invoice ID generation when status changes to PAID."""
+        """Update service order with automatic invoice ID generation when status changes to PAID 
+        or when in_date is set with PAID status (indicating service completion and payment complete)."""
         from app.order.utils import generate_invoice_id
         from app.order.schema import PaymentStatus
 
-        # Get existing order to check status change
+        # Get existing order to check status change and in_date change
         existing_order = self.repository.get_service_order_by_id(order_id)
         if existing_order:
             old_status = existing_order.get("status")
-            # Auto-generate invoice ID if status changed to PAID and no invoice ID exists
-            if (
-                order.get("status") == PaymentStatus.PAID
-                and old_status != PaymentStatus.PAID
-                and not order.get("invoice_id")
-                and not existing_order.get("invoice_id")
-            ):
-                # Extract branch and billing_mode from order
-                order_branch = order.get("branch")
-                order_billing_mode = order.get("billing_mode")
-                order["invoice_id"] = generate_invoice_id(
-                    self.repository.database, order_branch, order_billing_mode
-                )
-                order["invoice_date"] = datetime.now(timezone.utc)
+            old_in_date = existing_order.get("in_date")
+            
+            # Auto-generate invoice ID in two scenarios:
+            # 1. Status changed to PAID
+            # 2. in_date is now set (service completed) and status is PAID (payment complete)
+            if not order.get("invoice_id") and not existing_order.get("invoice_id"):
+                # Case 1: Status changed to PAID
+                if (
+                    order.get("status") == PaymentStatus.PAID
+                    and old_status != PaymentStatus.PAID
+                ):
+                    # Extract branch and billing_mode from order
+                    order_branch = order.get("branch")
+                    order_billing_mode = order.get("billing_mode")
+                    order["invoice_id"] = generate_invoice_id(
+                        self.repository.database, order_branch, order_billing_mode
+                    )
+                    order["invoice_date"] = datetime.now(timezone.utc)
+                # Case 2: in_date is now set (service completed) and status is PAID (payment complete)
+                elif (
+                    order.get("status") == PaymentStatus.PAID
+                    and order.get("in_date")
+                    and not old_in_date
+                ):
+                    # Extract branch and billing_mode from order
+                    order_branch = order.get("branch")
+                    order_billing_mode = order.get("billing_mode")
+                    order["invoice_id"] = generate_invoice_id(
+                        self.repository.database, order_branch, order_billing_mode
+                    )
+                    order["invoice_date"] = datetime.now(timezone.utc)
 
         # Proceed with normal order update
         return self.repository.update_service_order(order_id=order_id, order=order)
