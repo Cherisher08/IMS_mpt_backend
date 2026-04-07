@@ -127,6 +127,7 @@ def create_purchase_order(
         products_data = json.loads(products)
         products = [PurchaseOrderProduct(**p) for p in products_data]
     except (json.JSONDecodeError, ValidationError) as e:
+        print('Error parsing products JSON: ', e)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Invalid products JSON: {str(e)}",

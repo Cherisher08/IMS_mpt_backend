@@ -48,7 +48,7 @@ def patch_rental_order(
             detail="Pydantic Validation Error. Please Contact Admin or Developer.",
         )
 
-    updated_order = svc.repository.update_rental_order(
+    updated_order = svc.update_rental_order_with_invoice(
         order_id=id, order=order
     )
     if not updated_order:

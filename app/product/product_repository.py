@@ -101,7 +101,6 @@ class ProductRepository:
     ):
         """Create a new product from purchase order product data."""
         payload = {
-            "_id": ObjectId(product_id) if product_id else None,
             "name": name,
             "created_at": datetime.now(tz=timezone.utc),
             "quantity": quantity,
@@ -118,5 +117,10 @@ class ProductRepository:
             "profit": profit,
             "profit_type": profit_type,
         }
+        
+        # Only add _id if product_id is provided; otherwise let MongoDB auto-generate it
+        if product_id:
+            payload["_id"] = ObjectId(product_id)
+        
         result = self.database["products"].insert_one(payload)
         return self.get_product_by_id(product_id=str(result.inserted_id))
