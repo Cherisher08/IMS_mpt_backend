@@ -233,6 +233,12 @@ class OrderService:
                         self.repository.database, order.branch, order.billing_mode
                     )
                     order.invoice_date = datetime.now(timezone.utc)
+                elif order.status == PaymentStatus.PAID:
+                    # Fallback: if status is PAID but no invoice_id was generated in Cases 1 & 2, generate now
+                    order.invoice_id = generate_invoice_id(
+                        self.repository.database, order.branch, order.billing_mode
+                    )
+                    order.invoice_date = datetime.now(timezone.utc)
 
         # Proceed with normal order update
         return self.repository.update_rental_order(order_id=order_id, order=order)
