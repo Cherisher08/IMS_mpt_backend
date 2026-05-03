@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from bson import ObjectId
 
 from app.config import database
 from app.order.order_repository import OrderRepository
@@ -7,8 +8,9 @@ from app.product.product_repository import ProductRepository
 from app.product.schema import ProductResponse
 from app.product_category.product_category_repository import ProductCategoryRepository
 from app.product_category.schema import ProductCategory
-from app.unit.schema import Unit
+from app.unit.schema import Unit, UnitResponse
 from app.unit.unit_repository import UnitRepository
+from fastapi import HTTPException
 
 
 class OrderService:
@@ -350,6 +352,105 @@ class OrderService:
 
         # Proceed with normal order update
         return self.repository.update_service_order(order_id=order_id, order=order)
+
+    def _ensure_unit_response(self, unit_input):
+        if isinstance(unit_input, UnitResponse):
+            return unit_input
+
+        if isinstance(unit_input, Unit):
+            unit_data = unit_input.model_dump(by_alias=True)
+            if "_id" in unit_data and isinstance(unit_data["_id"], ObjectId):
+                unit_data["_id"] = str(unit_data["_id"])
+            return UnitResponse(**unit_data)
+
+        if isinstance(unit_input, dict):
+            unit_dict = unit_input.copy()
+            if "_id" in unit_dict and isinstance(unit_dict["_id"], ObjectId):
+                unit_dict["_id"] = str(unit_dict["_id"])
+            return UnitResponse(**unit_dict)
+
+        if isinstance(unit_input, str):
+            unit_data = self.unit_repository.get_unit_by_id(unit_id=unit_input)
+            if unit_data:
+                if "_id" in unit_data and isinstance(unit_data["_id"], ObjectId):
+                    unit_data["_id"] = str(unit_data["_id"])
+                return UnitResponse(**unit_data)
+
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid product_unit value: {unit_input}",
+        )
+
+    def _normalize_product_detail_unit(self, product_detail: dict):
+        current_unit = product_detail.get("product_unit")
+        if current_unit is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Missing product_unit on product_details item",
+            )
+
+        product_detail["product_unit"] = self._ensure_unit_response(current_unit)
+        return product_detail
+
+    def sync_rental_order_products(self, order_id: str):
+        """Sync rental order product_details with latest product catalog data.
+
+        For each product in the rental order's product_details:
+        - Fetch the latest product from the database by product_id
+        - Update product_details fields with latest catalog data
+        - Preserve order-specific fields (order_quantity, dates, damage, etc.)
+
+        Args:
+            order_id: The ID of the rental order to sync
+
+        Returns:
+            The updated rental order with synced product_details
+
+        Raises:
+            HTTPException: If order not found
+        """
+        # Get the rental order
+        rental_order = self.repository.get_rental_order_by_id(order_id)
+        if not rental_order:
+            raise HTTPException(status_code=404, detail="Rental order not found")
+
+        # Sync each product in product_details
+        updated_product_details = []
+        for product_detail in rental_order.get("product_details", []):
+            product_id = product_detail.get("_id")
+
+            if product_id:
+                # Fetch latest product from database
+                latest_product = self.product_repository.get_product_by_id(product_id)
+
+                if latest_product:
+                    product_unit_source = latest_product.get("unit", product_detail.get("product_unit"))
+                    updated_detail = {
+                        **product_detail,  # Preserve all existing fields
+                        "name": latest_product.get("name", product_detail.get("name")),
+                        "rent_per_unit": latest_product.get("rent_per_unit", product_detail.get("rent_per_unit")),
+                        "product_code": latest_product.get("product_code", product_detail.get("product_code", "")),
+                        "category": latest_product.get("category", product_detail.get("category")),
+                        "product_unit": self._ensure_unit_response(product_unit_source),
+                        "type": latest_product.get("type", product_detail.get("type")),
+                        "description": latest_product.get("description", product_detail.get("description", "")),
+                    }
+                    updated_product_details.append(updated_detail)
+                else:
+                    # Product not found in catalog, normalize existing product_unit and keep original
+                    updated_product_details.append(self._normalize_product_detail_unit(product_detail))
+            else:
+                # No product_id, normalize product_unit and keep original
+                updated_product_details.append(self._normalize_product_detail_unit(product_detail))
+
+        # Update the rental order with synced product_details
+        rental_order["product_details"] = updated_product_details
+        updated_order = self.repository.update_rental_order(
+            order_id=order_id,
+            order=RentalOrder(**rental_order)
+        )
+
+        return updated_order
 
 
 def get_order_service():
