@@ -38,6 +38,7 @@ class ProductDB(AppModel):
     profit: float = Field(default=0)
     profit_type: DiscountType = Field(default=DiscountType.RUPEES)
     gst_percentage: float = Field(default=0)
+    description: Optional[str] = Field(default=None)
 
 
 class ProductResponse(AppModel):
@@ -57,3 +58,4 @@ class ProductResponse(AppModel):
     profit: float = Field(default=0)
     profit_type: DiscountType = Field(default=DiscountType.RUPEES)
     gst_percentage: float = Field(default=0)
+    description: Optional[str] = Field(default=None)

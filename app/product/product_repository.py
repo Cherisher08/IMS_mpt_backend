@@ -27,6 +27,7 @@ class ProductRepository:
             "profit": product.profit,
             "profit_type": product.profit_type,
             "gst_percentage": product.gst_percentage,
+            "description": product.description,
         }
 
         result = self.database["products"].insert_one(payload)
@@ -49,6 +50,7 @@ class ProductRepository:
             "profit": product.profit,
             "profit_type": product.profit_type,
             "gst_percentage": product.gst_percentage,
+            "description": product.description,
         }
 
         self.database["products"].update_one(

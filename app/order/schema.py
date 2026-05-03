@@ -79,6 +79,7 @@ class ProductDetails(BaseModel):
     duration: int = Field(default=0)
     damage: str = Field(default="")
     type: ProductType = Field(default=ProductType.RENTAL)
+    description: Optional[str] = Field(default="")
 
     @field_validator("in_date", mode="before")
     def empty_string_to_none(cls, v):
