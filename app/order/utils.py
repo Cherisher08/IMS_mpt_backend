@@ -102,7 +102,7 @@ def send_whatsapp_message_with_img(
         "to": mobile_number,
         "type": "template",
         "template": {
-            "name": "send_order_dc",
+            "name": "whatsapp_order_dc",
             "language": {"code": "en"},
             "components": [
                 {
