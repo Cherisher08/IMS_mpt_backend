@@ -49,6 +49,7 @@ class RepaymentMode(str, Enum):
     CASHLESS = "cash less"
     UPILESS = "upi less"
     KVBLESS = "kvb less"
+    INDIANLESS = "indian less"
 
 
 class TransportType(str, Enum):
