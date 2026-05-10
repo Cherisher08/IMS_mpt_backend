@@ -224,22 +224,15 @@ def generate_invoice_id(
     """
     Generate the next invoice ID based on existing invoices.
 
-    Format: INV/{type_code}-{branch_code}/{fy}/{next_number}
-    where type_code is the billing mode (B2B or B2C)
-    branch_code is the branch code (e.g., PADUR-1, KLMBK-1, PUDPK-1)
-    fy is the fiscal year starting year (April-based cycle)
+    Format: INV/{type_letter}{year_2_digits}/{branch_short}/{next_number}
+    where type_letter is 'B' for B2B or 'C' for B2C
+    branch_short is PD, PM, or KL
+    year_2_digits is the calendar year in 2 digits (e.g., 26 for 2026)
     and next_number is 4-digit padded increment.
 
-    Fiscal year runs from April to March:
-    - If month < 4 (April), fiscal year is previous year to current year
-    - If month >= 4 (April), fiscal year is current year to next year
-
-    Branch and type-based numbering:
-    - Each branch + billing type combination has its own sequential numbering
-    - B2B and B2C invoices maintain separate counters (both start from 0001)
-    - New format (with type and branch) applies to invoices created on or after April 1, 2026
-    - Old format (without type/branch) applies to invoices created before April 1, 2026
-    - Backward compatibility: Old invoices are not counted in new numbering
+    Note: Numbering resets every calendar year.
+    Specifically, we also consider the manually updated April 2026 invoices (INV/B2B/PD/XXXX) when generating sequence numbers.
+    Old format (without type/branch) applies to invoices created before April 1, 2026
 
     Args:
         db: MongoDB database instance
@@ -247,87 +240,87 @@ def generate_invoice_id(
         billing_mode: BillingMode enum value (B2B or B2C, default: B2B)
 
     Returns:
-        Next invoice ID as string in format: INV/B2B-PADUR-1/2025/0001
+        Next invoice ID as string in format: INV/B26/PD/0001
     """
-    # Get current date
     now = datetime.now()
     current_year = now.year
     current_month = now.month
 
-    # Calculate financial year starting year (April to March)
-    # If month < 4 (April), financial year starts in previous year
     financial_year = current_year - 1 if current_month < 4 else current_year
 
-    # Check if we should use the new format (with branch)
-    # New format starts from April 1, 2026
     new_format_start_date = datetime(2026, 4, 1)
     use_new_format = now >= new_format_start_date
 
-    # Extract branch code from branch enum value
-    # Branch values are like "PADUR-1", "KLMBK-1", "PUDPK-1"
-    branch_code = branch.value
-    
-    # Extract billing mode code from enum
-    # BillingMode values are "B2B" or "B2C"
-    type_code = billing_mode.value
-
-    # Query for existing invoices in the rental_orders collection
     collection = db["rental_orders"]
 
     if use_new_format:
-        # New format with type: Query invoices for specific branch and billing mode
-        # Format: INV/{type_code}-{branch_code}/ (e.g., INV/B2B-PADUR-1/)
-        # This ensures B2B and B2C maintain separate numbering
+        current_year_full = now.year
+        year_2_digits = str(current_year_full)[-2:]
+        
+        # Branch mapping
+        branch_mapping = {
+            Branch.PADUR.value: "PD",
+            Branch.PUDUPAKKAM.value: "PM",
+            Branch.KELAMBAKKAM.value: "KL",
+        }
+        
+        branch_str = branch.value
+        branch_short = branch_mapping.get(branch_str, "XX")
+        
+        type_letter = "B" if billing_mode == BillingMode.B2B else "C"
+        
+        # The new standard prefix
+        new_prefix = f"INV/{type_letter}{year_2_digits}/{branch_short}/"
+        manual_prefix = f"INV/{billing_mode.value}/{branch_short}/"
+        
+        regex_pattern = f"^({re.escape(new_prefix)}|{re.escape(manual_prefix)})"
+        
+        # Performance optimization: only get orders after April 1 2026
         orders_with_invoices = collection.find(
             {
-                "invoice_id": {"$regex": f"^INV/{type_code}-{branch_code}/"},
-                "billing_mode": billing_mode.value,
+                "invoice_id": {"$regex": regex_pattern},
+                "$or": [
+                    {"invoice_date": {"$gte": new_format_start_date}},
+                    {"invoice_date": {"$exists": False}, "created_at": {"$gte": new_format_start_date}},
+                    {"invoice_date": None, "created_at": {"$gte": new_format_start_date}}
+                ]
             },
-            {"invoice_id": 1, "_id": 0},
+            {"invoice_id": 1, "_id": 0}
         )
+        
+        max_invoice_num = 0
+        
+        for order in orders_with_invoices:
+            invoice_id = order.get("invoice_id")
+            if not invoice_id:
+                continue
+                
+            parts = invoice_id.split("/")
+            if len(parts) == 4:
+                try:
+                    invoice_num = int(parts[3])
+                    if invoice_num > max_invoice_num:
+                        max_invoice_num = invoice_num
+                except ValueError:
+                    continue
+                    
+        next_invoice_num = max_invoice_num + 1
+        return f"{new_prefix}{next_invoice_num:04d}"
+        
     else:
-        # Old format: Query all invoice_ids that start with "INV/"
-        # Old invoices don't have type, so we don't filter by billing_mode
+        # Old format logic
         orders_with_invoices = collection.find(
             {"invoice_id": {"$regex": "^INV/"}}, {"invoice_id": 1, "_id": 0}
         )
 
-    # Extract invoice numbers and find the latest
-    max_invoice_num = 0
-    latest_year = financial_year
+        max_invoice_num = 0
+        latest_year = financial_year
 
-    for order in orders_with_invoices:
-        invoice_id = order.get("invoice_id")
-        if not invoice_id:
-            continue
+        for order in orders_with_invoices:
+            invoice_id = order.get("invoice_id")
+            if not invoice_id:
+                continue
 
-        if use_new_format:
-            # Parse invoice_id format: INV/B2B-PADUR-1/2025/0001 or INV/PADUR-1/2024/0001 (transition)
-            parts = invoice_id.split("/")
-            
-            # New format with type: 4 parts [INV, B2B-PADUR-1, 2025, 0001]
-            # Transition format without type: 4 parts [INV, PADUR-1, 2024, 0001]
-            if len(parts) == 4:
-                # New format with type
-                try:
-                    type_branch_code = parts[1]  # e.g., "B2B-PADUR-1"
-                    year = int(parts[2])
-                    invoice_num = int(parts[3])
-
-                    # Parse the type and branch from combined code
-                    # Format: {type}-{branch}, e.g., "B2B-PADUR-1"
-                    type_branch_parts = type_branch_code.split("-", 1)
-                    if len(type_branch_parts) == 2:
-                        invoice_type, invoice_branch_code = type_branch_parts
-                        # Only consider invoices matching both type and branch
-                        if invoice_type == type_code and invoice_branch_code == branch_code:
-                            if invoice_num > max_invoice_num:
-                                max_invoice_num = invoice_num
-                                latest_year = year
-                except (ValueError, IndexError):
-                    continue
-        else:
-            # Old format: Parse invoice_id format: INV/2024/0001
             parts = invoice_id.split("/")
             if len(parts) != 3:
                 continue
@@ -336,24 +329,14 @@ def generate_invoice_id(
                 year = int(parts[1])
                 invoice_num = int(parts[2])
 
-                # Track the highest invoice number found
                 if invoice_num > max_invoice_num:
                     max_invoice_num = invoice_num
                     latest_year = year
             except (ValueError, IndexError):
-                # Skip invalid invoice IDs
                 continue
 
-    # Generate next invoice number
-    next_invoice_num = max_invoice_num + 1
-
-    # Use the latest year found, or current financial year if no invoices exist
-    result_year = latest_year if max_invoice_num > 0 else financial_year
-
-    # Format and return with type code
-    if use_new_format:
-        return f"INV/{type_code}-{branch_code}/{result_year}/{next_invoice_num:04d}"
-    else:
+        next_invoice_num = max_invoice_num + 1
+        result_year = latest_year if max_invoice_num > 0 else financial_year
         return f"INV/{result_year}/{next_invoice_num:04d}"
 
 
