@@ -37,7 +37,6 @@ class ContactRepository:
         return result
 
     def update_contact(self, contact_id: str, contact: Contact):
-        print("contact", contact)
         payload = {
             "name": contact.name,
             "personal_number": contact.personal_number,
