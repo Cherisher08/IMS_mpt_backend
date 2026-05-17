@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from pydantic import Field
 
-from app.auth.schema import PyObjectId
+from app.auth.schema import PyObjectId, Branch
 from app.utils import AppModel
 
 
@@ -17,6 +17,8 @@ class Contact(AppModel):
     pincode: str
     address_proof: str
     company_name: str
+    remarks: str = Field(default="")
+    branch: Branch = Field(default=Branch.PADUR)
     created_at: datetime = Field(
         default_factory=(lambda _: datetime.now(tz=timezone.utc))
     )

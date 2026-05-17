@@ -20,6 +20,8 @@ class ContactRepository:
             "pincode": contact.pincode,
             "address_proof": contact.address_proof,
             "company_name": contact.company_name,
+            "remarks": contact.remarks,
+            "branch": contact.branch,
             "created_at": contact.created_at,
         }
 
@@ -35,6 +37,7 @@ class ContactRepository:
         return result
 
     def update_contact(self, contact_id: str, contact: Contact):
+        print("contact", contact)
         payload = {
             "name": contact.name,
             "personal_number": contact.personal_number,
@@ -45,6 +48,8 @@ class ContactRepository:
             "pincode": contact.pincode,
             "address_proof": contact.address_proof,
             "company_name": contact.company_name,
+            "remarks": contact.remarks,
+            "branch": contact.branch,
             "created_at": contact.created_at,
         }
 

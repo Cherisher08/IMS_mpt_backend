@@ -4,6 +4,7 @@ import time
 from typing import Optional
 from fastapi import Depends, Form, UploadFile, File, HTTPException, status
 from pydantic_core import ValidationError
+from app.auth.schema import Branch
 
 from app.contact.contact_service import ContactService, get_contact_service
 from app.contact.schema import Contact
@@ -27,6 +28,8 @@ async def update_contact(
     pincode: str = Form(...),
     company_name: str = Form(...),
     address_proof: str = Form(...),
+    remarks: str = Form(default=""),
+    branch: Branch = Form(default=Branch.PADUR),
     file: Optional[UploadFile] = File(None),
     svc: ContactService = Depends(get_contact_service),
 ):
@@ -48,6 +51,8 @@ async def update_contact(
         pincode=pincode,
         company_name=company_name,
         address_proof=filename,
+        remarks=remarks,
+        branch=branch,
         created_at=datetime.fromtimestamp(timestamp=unix_time, tz=timezone.utc),
     )
 
