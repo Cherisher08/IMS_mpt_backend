@@ -15,6 +15,7 @@ from app.order.router import router as orders
 from app.config import client, env, fastapi_config
 from app.petty_cash.router import router as petty_cash
 from app.contact.utils import UPLOAD_DIR
+from app.aadhaar import router as aadhaar_router
 
 
 
@@ -63,6 +64,7 @@ app.include_router(
 app.include_router(unit, prefix="/unit", tags=["Unit"])
 app.include_router(orders, prefix="/orders", tags=["Orders"])
 app.include_router(petty_cash, prefix="/petty-cash", tags=["Petty Cash"])
+app.include_router(aadhaar_router, prefix="/aadhaar", tags=["Aadhaar"])
 
 
 @app.get("/")

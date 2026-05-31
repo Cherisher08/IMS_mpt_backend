@@ -91,6 +91,14 @@ class ENV:
         if not self.version:
             print("Missing version")
 
+        self.surepass_api_token = os.getenv("SUREPASS_API_TOKEN", "")
+        if not self.surepass_api_token:
+            print("Missing SUREPASS_API_TOKEN – Aadhaar OTP flow will not work")
+
+        self.aadhaar_encrypt_key = os.getenv("AADHAAR_ENCRYPT_KEY", "")
+        if not self.aadhaar_encrypt_key:
+            print("Missing AADHAAR_ENCRYPT_KEY – Aadhaar data encryption disabled")
+
         if self.missing_required_envs:
             error_message = (
                 f"Missing required envs: {','.join(self.missing_required_envs)}"

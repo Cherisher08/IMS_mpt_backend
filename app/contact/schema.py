@@ -22,6 +22,14 @@ class Contact(AppModel):
     created_at: datetime = Field(
         default_factory=(lambda _: datetime.now(tz=timezone.utc))
     )
+    # Aadhaar eKYC fields
+    aadhaar_verified: bool = Field(default=False)
+    aadhaar_masked_uid: Optional[str] = Field(default=None)
+    aadhaar_name: Optional[str] = Field(default=None)
+    aadhaar_dob: Optional[str] = Field(default=None)
+    aadhaar_gender: Optional[str] = Field(default=None)
+    aadhaar_address: Optional[str] = Field(default=None)
+    aadhaar_data_encrypted: Optional[str] = Field(default=None)
 
 
 class ContactResponse(Contact):

@@ -57,6 +57,14 @@ class ContactRepository:
         )
         return self.get_contact_by_id(contact_id=contact_id)
 
+    def patch_aadhaar_data(self, contact_id: str, aadhaar_patch: dict):
+        """Patch only the Aadhaar-related fields on a contact document."""
+        self.database["contacts"].update_one(
+            {ID: ObjectId(contact_id)},
+            {"$set": aadhaar_patch},
+        )
+        return self.get_contact_by_id(contact_id=contact_id)
+
     def delete_contact(self, contact_id: str):
         result = self.database["contacts"].delete_one({ID: ObjectId(contact_id)})
         return result.deleted_count
