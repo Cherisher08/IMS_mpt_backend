@@ -168,6 +168,8 @@ class RentalOrder(Order):
         default_factory=WhatsAppNotifications
     )
     invoice_date: Optional[datetime] = Field(default=None)
+    delivery_site_location: Optional[str] = Field(default="")
+    delivery_site_images: Optional[List[str]] = Field(default_factory=list)
 
 
 class SalesOrder(Order):

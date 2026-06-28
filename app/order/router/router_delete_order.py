@@ -1,6 +1,8 @@
+import os
 from fastapi import Depends, HTTPException, Response, status
 
 from app.order.order_service import OrderService, get_order_service
+from app.contact.utils import UPLOAD_DIR
 
 from . import router
 
@@ -13,10 +15,23 @@ def delete_rental_order(
     id: str,
     svc: OrderService = Depends(get_order_service),
 ):
+    current_order = svc.repository.get_rental_order_by_id(order_id=id)
     order_data = svc.repository.delete_rental_order_by_id(order_id=id)
     if order_data != 1:
         error_message = "The Order was not deleted. Please try again"
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
+
+    # Clean up associated site images from disk
+    if current_order and "delivery_site_images" in current_order and current_order["delivery_site_images"]:
+        for img in current_order["delivery_site_images"]:
+            if img:
+                filename = os.path.basename(img)
+                file_path = os.path.join(UPLOAD_DIR, "order", filename)
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        print(f"Failed to delete site image {file_path}: {e}")
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

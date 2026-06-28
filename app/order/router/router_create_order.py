@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 from fastapi import Depends, HTTPException, status, Form, File, UploadFile
 from pydantic_core import ValidationError
@@ -16,6 +17,7 @@ from app.order.schema import (
 from app.product.schema import ProductResponse
 from app.contact.schema import ContactResponse
 from app.contact.utils import handle_upload, sanitize_filename
+from app.order.utils import prepare_rental_order_response
 from app.utils import env
 
 from . import router
@@ -29,6 +31,11 @@ def create_rental_order(
     payload: RentalOrder,
     svc: OrderService = Depends(get_order_service),
 ) -> RentalOrder:
+    if payload.delivery_site_images:
+        payload.delivery_site_images = [
+            os.path.basename(img) if img else ""
+            for img in payload.delivery_site_images
+        ]
     order_data = svc.create_rental_order_with_invoice(order=payload)
     if not order_data:
         error_message = (
@@ -37,6 +44,7 @@ def create_rental_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
+        order_data = prepare_rental_order_response(order_data)
         order_data["product_details"] = [
             ProductDetails(**product_detail)
             for product_detail in order_data["product_details"]

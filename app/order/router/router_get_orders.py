@@ -5,6 +5,7 @@ from pydantic_core import ValidationError
 from app.order.order_service import OrderService, get_order_service
 from app.order.schema import Deposit, ProductDetails, PurchaseOrderProduct, RentalOrder, SalesOrder, ServiceOrder, PurchaseOrder
 from app.order.filters import FilterBuilder, SortBuilder
+from app.order.utils import prepare_rental_order_response
 from app.product.schema import ProductResponse
 
 from . import router
@@ -36,6 +37,7 @@ def get_rental_orders(
 
     try:
         for order in order_data:
+            order = prepare_rental_order_response(order)
             order["product_details"] = [
                 ProductDetails(**product_detail)
                 for product_detail in order["product_details"]

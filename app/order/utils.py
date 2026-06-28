@@ -531,3 +531,15 @@ def calculate_final_amount(order: dict) -> float:
     final_amount = (total_amount - discount_amount + gst_amount + round_off + eway_amount + damage_expenses) - balance_paid
 
     return round(final_amount, 2)
+
+
+def prepare_rental_order_response(order_data: dict) -> dict:
+    if not order_data:
+        return order_data
+    if "delivery_site_images" in order_data and order_data["delivery_site_images"]:
+        order_data["delivery_site_images"] = [
+            f"{env.image_domain}/public/order/{img}" if img and not img.startswith("http") else img
+            for img in order_data["delivery_site_images"]
+        ]
+    return order_data
+

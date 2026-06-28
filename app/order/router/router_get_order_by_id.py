@@ -11,6 +11,7 @@ from app.order.schema import (
     ServiceOrder,
     PurchaseOrder,
 )
+from app.order.utils import prepare_rental_order_response
 from app.product.schema import ProductResponse
 
 from . import router
@@ -31,6 +32,7 @@ def get_rental_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
 
     try:
+        order_data = prepare_rental_order_response(order_data)
         order_data["product_details"] = [
             ProductDetails(**product_detail)
             for product_detail in order_data["product_details"]
